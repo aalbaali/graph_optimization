@@ -1,13 +1,14 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %   This is a base node abstract class.
+%  
+%   Further explanation is provided at the end of this file.
+%   A log of major changes is attached at the end of this file.
 %
 %   Amro Al Baali
 %   23-Feb-2021
 %
-%   --------------------------------------------------------------------------
-%   Change log
-%   --------------------------------------------------------------------------
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 classdef BaseNode < handle
     %BASENODE Necessary functions and variables to implement a node class
     % This class is a handle class which allows internal properties to be
@@ -17,7 +18,7 @@ classdef BaseNode < handle
     methods
         function obj = BaseNode( )                     
         end
-        % Public func: Value setter.
+        % Value setter. Verify that the value is a valid element.
         function set.value(obj, value_in)
             if ~obj.isValidValue( value_in)
                 error("Invalid input");
@@ -26,17 +27,38 @@ classdef BaseNode < handle
             obj.value = value_in;
         end
         
+        % Value getter. Generate warning if value is not initialized.
         function value_out = get.value(obj)
             if all( isnan( obj.value))
                 warning('Value not initialized');
             end
             % Return the internal value
             value_out = obj.value;
+        end       
+        
+        % Increment local value with an increment
+        function out = increment( obj, increment)
+            % Check if value is instantiated
+            if isnan( obj.value)
+                error("Value not initialized");
+            end
+            
+            % Check validity of the increment
+            % The static `oplus' isValidIncrement is called.
+            if ~eval(obj.type).isValidIncrement( increment)                
+                error("Invalid increment");
+            end
+            
+            % The static `oplus' element is called
+            obj.value = eval(obj.type).oplus( obj.value, increment);
+            out = obj.value;
         end
         
-%         function set.dd(obj, ~)
-%             obj.dd = class(obj);
-%         end
+        % Overload the `+' operator using the `increment' function.
+        function out = plus( obj, increment)
+            obj.increment( increment);
+            out = obj.value;
+        end
     end
     
     methods (Abstract = true, Static = true)
@@ -81,3 +103,31 @@ classdef BaseNode < handle
         value = nan;
     end   
 end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Explanation
+%       Types of properties
+%       the 'type' and 'dim' properties are set to constant
+%       because they shouldn't change for the implemented class. They are set to
+%       constant because they do not rely on the implementation of the class. 
+%       The reason I want them to be static is that if we are simply provided
+%       the class name, then we can access its type and dimension without
+%       creating an instance of the class.
+%
+%       The 'value' property is public, but it comes with its own setters and
+%       getters. The setters ensure that that the provided values are valid.
+%       This approach should be convenient and safe (reliable).
+%       
+%       The validity checkers are abstract methods since they are specific to
+%       the implementation. This is also the case for the oplus operator. For
+%       general codes, another subclass can be inherited from this class. For
+%       example, for linear nodes, a subclass can be inherited from this base
+%       class and it can serve as another abstract class for specific
+%       implementations.
+%       
+%       The reason I'm using 'eval(obj.type)' is to use the static methods from
+%       the inherited class.
+%   --------------------------------------------------------------------------
+%   Change log
+%   --------------------------------------------------------------------------
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

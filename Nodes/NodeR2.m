@@ -7,9 +7,6 @@
 %   
 %   Amro Al Baali
 %   23-Feb-2021
-%   --------------------------------------------------------------------------
-%   Change log
-%   --------------------------------------------------------------------------
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 classdef NodeR2 < BaseNode
     %NODER2 Implementation of BaseNode on elements of R^2 space.
@@ -50,9 +47,16 @@ classdef NodeR2 < BaseNode
         %   The m_* prefix indicates that it's a 'member' variable
         
         % Type of this node should match that class name
-        type = mfilename;
+        type = string( mfilename);
         
         % Dimension or degrees of freedom of this node
         dim = 2;
     end          
 end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Explanation
+%
+%   --------------------------------------------------------------------------
+%   Change log
+%   --------------------------------------------------------------------------
