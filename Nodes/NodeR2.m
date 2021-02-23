@@ -34,12 +34,18 @@ classdef NodeR2 < BaseNode
         function isvalid = isValidValue( value_in)
             % Value should be a [2x1] column matrix
             isvalid = all( size( value_in) == [2, 1]);
+                        
+            isvalid = isvalid && all( ~isinf( value_in));
+            isvalid = isvalid && all( ~isnan( value_in));
         end
         
         % Check validity of the increment
         function isvalid = isValidIncrement( increment)
             % This is the same as valid element
             isvalid = NodeR2.isValidValue( increment);
+            
+            isvalid = isvalid && all( ~isinf( increment));
+            isvalid = isvalid && all( ~isnan( increment));
         end
     end
     

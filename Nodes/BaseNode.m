@@ -16,7 +16,7 @@ classdef BaseNode < handle
     
     
     methods
-        function obj = BaseNode( )                     
+        function obj = BaseNode()                     
         end
         % Value setter. Verify that the value is a valid element.
         function set.value(obj, value_in)
@@ -25,11 +25,14 @@ classdef BaseNode < handle
             end
             % Set the internal value
             obj.value = value_in;
+            
+            % Set the marker to inialized
+            obj.m_value_initialized = true;
         end
         
         % Value getter. Generate warning if value is not initialized.
         function value_out = get.value(obj)
-            if all( isnan( obj.value))
+            if ~obj.m_value_initialized
                 warning('Value not initialized');
             end
             % Return the internal value
@@ -45,12 +48,12 @@ classdef BaseNode < handle
             
             % Check validity of the increment
             % The static `oplus' isValidIncrement is called.
-            if ~eval(obj.type).isValidIncrement( increment)                
+            if ~obj.isValidIncrement( increment)                
                 error("Invalid increment");
             end
             
             % The static `oplus' element is called
-            obj.value = eval(obj.type).oplus( obj.value, increment);
+            obj.value = obj.oplus( obj.value, increment);
             out = obj.value;
         end
         
@@ -58,6 +61,15 @@ classdef BaseNode < handle
         function out = plus( obj, increment)
             obj.increment( increment);
             out = obj.value;
+        end
+        
+        % Display function
+        function out = disp( obj)
+            if ~obj.m_value_initialized                
+                out = obj;
+                return
+            end
+            disp( obj.value);            
         end
     end
     
@@ -102,6 +114,11 @@ classdef BaseNode < handle
         % Default value is set to NaN in order to know if it was instantiated.
         value = nan;
     end   
+    
+    properties (Abstract = false, Access = protected)
+        % Tracks whether a value is initialized or not
+        m_value_initialized = false;
+    end
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
