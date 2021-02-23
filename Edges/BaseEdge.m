@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%   This is a base node abstract class.
+%   This is a base edge abstract class.
 %
 %   Amro Al Baali
 %   23-Feb-2021
@@ -8,31 +8,15 @@
 %   Change log
 %   --------------------------------------------------------------------------
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-classdef BaseNode < handle
+classdef (Abstract) BaseEdge
     %BASENODE Necessary functions and variables to implement a node class
-    % This class is a handle class which allows internal properties to be
-    % modified
     
-    
-    methods
-        function obj = BaseNode()            
-        end
+    methods (Abstract = true)
         % Public func: Value setter.
-        function set.value(obj, value_in)
-            if ~obj.isValidValue( value_in)
-                error("Invalid input");
-            end
-            % Set the internal value
-            obj.value = value_in;
-        end
+        void = setValue(obj, value_in);
         
-        function value_out = get.value(obj)
-            if all( isnan( obj.value))
-                warning('Value not initialized');
-            end
-            % Return the internal value
-            value_out = obj.value;
-        end
+        % Public func: value getter
+        value_out = getValue(obj);
     end
     
     methods (Abstract = true, Static = true)
@@ -58,21 +42,26 @@ classdef BaseNode < handle
     properties (Abstract = true, Constant = true)
         %   The m_* prefix indicates that it's a 'member' variable
         
-        % static const string: Node type (e.g., "NodeSE2"). I'll use the
-        % convention of setting type to the class name
+        % static const string: Edge type (e.g., "EdgeSE2" or "EdgeSE2R2"). I'll
+        % use the convention of setting type to the class name
         type;
         
-        % static const int: Dimention or degrees of freedom (dof) of the variable
-        % (e.g., for SE(2), it's 3)
-        dim;
+        % static const int: Number of nodes attached to this edge (usually
+        % it's either 1 or 2 for SLAM problems)
+        numEndNodes;
+        
+        % static const string cell array of types of the end nodes. The order
+        % matters! It should match the class name (e.g., "EdgeSE2R2" is
+        % different from "EdgeR2SE2"). E.g., endNodes = {"NodeSE2", "NodeR2"};
+        % The elements can be set using class(NodeR2) or more easily "NodeR2"
+        endNodes;
     end
     
-    properties
+    properties (Abstract = true, Constant = false, SetAccess = protected, ...
+            GetAccess = protected)
         % NodeType: This is where the variable is stored (e.g., X_k pose). This
         % will depend on the type of variable stored.
-        % Note that this is updated and set using MATLAB's getter and setter
-        % functions. 
-        % Default value is set to NaN in order to know if it was instantiated.
-        value = nan;
+        m_value;
     end
+    
 end

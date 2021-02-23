@@ -17,18 +17,8 @@ classdef NodeR2 < BaseNode
     methods (Access = public)
         % Constructor
         function obj = NodeR2()
+            obj = obj@BaseNode();
         end
-        % Public func: Value setter.
-        function obj = setValue(obj, value_in)
-            % Set the internal value
-            obj.m_value = value_in;
-        end
-                
-        function value_out = getValue(obj)
-            % Return the internal value
-            value_out = obj.m_value;
-        end
-        
     end
     
     methods (Static = true)
@@ -66,8 +56,8 @@ classdef NodeR2 < BaseNode
         dim = 2;
     end   
     
-    properties (Constant = false, SetAccess = protected, GetAccess = protected)
-        % This keeps track of the value
-        m_value;
-    end
+%     properties (Constant = false, SetAccess = protected, GetAccess = protected)
+%         % This keeps track of the value
+%         m_value;
+%     end
 end
