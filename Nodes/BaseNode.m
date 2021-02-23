@@ -15,7 +15,7 @@ classdef BaseNode < handle
     
     
     methods
-        function obj = BaseNode()            
+        function obj = BaseNode( )                     
         end
         % Public func: Value setter.
         function set.value(obj, value_in)
@@ -33,6 +33,10 @@ classdef BaseNode < handle
             % Return the internal value
             value_out = obj.value;
         end
+        
+%         function set.dd(obj, ~)
+%             obj.dd = class(obj);
+%         end
     end
     
     methods (Abstract = true, Static = true)
@@ -59,7 +63,8 @@ classdef BaseNode < handle
         %   The m_* prefix indicates that it's a 'member' variable
         
         % static const string: Node type (e.g., "NodeSE2"). I'll use the
-        % convention of setting type to the class name
+        % convention of setting type to the class name.
+        % Therefore, in the inherited classes, simply use 'type = mfilename;'
         type;
         
         % static const int: Dimention or degrees of freedom (dof) of the variable
@@ -74,5 +79,5 @@ classdef BaseNode < handle
         % functions. 
         % Default value is set to NaN in order to know if it was instantiated.
         value = nan;
-    end
+    end   
 end

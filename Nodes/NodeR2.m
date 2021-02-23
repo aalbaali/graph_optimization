@@ -50,14 +50,9 @@ classdef NodeR2 < BaseNode
         %   The m_* prefix indicates that it's a 'member' variable
         
         % Type of this node should match that class name
-        type = "NodeR2";
+        type = mfilename;
         
         % Dimension or degrees of freedom of this node
         dim = 2;
-    end   
-    
-%     properties (Constant = false, SetAccess = protected, GetAccess = protected)
-%         % This keeps track of the value
-%         m_value;
-%     end
+    end          
 end
