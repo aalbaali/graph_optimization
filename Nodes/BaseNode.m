@@ -64,13 +64,13 @@ classdef BaseNode < handle
         end
         
         % Display function
-        function out = disp( obj)
-            if ~obj.m_value_initialized                
-                out = obj;
-                return
-            end
-            disp( obj.value);            
-        end
+%         function out = disp( obj)
+%             if ~obj.m_value_initialized                
+%                 out = obj;
+%                 return
+%             end
+%             disp( obj.value);            
+%         end
     end
     
     methods (Abstract = true, Static = true)
