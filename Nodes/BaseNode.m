@@ -16,10 +16,38 @@ classdef BaseNode < handle
     
     
     methods
-        function obj = BaseNode()                     
+        % The constructor can take a 'value' argument. If no argument is
+        % provided, it'll be set to zero.
+        % In the constructor of the implementation class, call the BaseNode
+        % constructor using
+        %       obj@BaseNode( varargin{:})        
+        function obj = BaseNode( varargin)                     
+            % @params[in] 'value': (optional) initial value of the node. If not
+            % specified, it'll be set to nan.
+            defaultValue = nan;
+            
+            % Input parser
+            p = inputParser;
+            % A scalar nan is a valid value (implies that it's uninitialized).
+            validValue = @(v) ( isscalar(v) && isnan(v)) || obj.isValidValue( v);
+            
+            % Optional
+            addOptional( p, 'value', defaultValue, validValue);            
+            % Parse 
+            parse(p, varargin{:});
+            % Store results
+            obj.value = p.Results.value;
         end
+        
         % Value setter. Verify that the value is a valid element.
-        function set.value(obj, value_in)
+        function setValue(obj, value_in)
+            % @params[in] value_in: the value to be stored in the node. It
+            % accepts a value of nan (scalar) to indicate an empty 'value'
+            if isscalar( value_in) && isnan( value_in)
+                obj.value = value_in;
+                obj.m_value_initialized = false;
+                return;
+            end
             if ~obj.isValidValue( value_in)
                 error("Invalid input");
             end
@@ -63,14 +91,17 @@ classdef BaseNode < handle
             out = obj.value;
         end
         
-        % Display function
-%         function out = disp( obj)
-%             if ~obj.m_value_initialized                
-%                 out = obj;
-%                 return
-%             end
-%             disp( obj.value);            
-%         end
+        % Set ID
+        function setId( obj, id_in)
+            % @params[in] id: real positive integer
+            if isscalar( id_in) && isreal( id_in) && id_in > 0 && ...
+                    floor( id_in) == id_in
+                % Store as an integer
+                obj.id = int8( id_in);
+            else
+                error("Invalid id input");
+            end
+        end
     end
     
     methods (Abstract = true, Static = true)
@@ -101,18 +132,25 @@ classdef BaseNode < handle
         % Therefore, in the inherited classes, simply use 'type = mfilename;'
         type;
         
-        % static const int: Dimention or degrees of freedom (dof) of the variable
-        % (e.g., for SE(2), it's 3)
+        % static const int: Dimension of the space the robot operatoes on. For
+        % example, for SE2, this is 2.
         dim;
+        
+        % static const int: Degrees of freedom. Degree of the tangent space. For
+        % SE2, this is 3.
+        dof;
     end
     
-    properties
+    properties (SetAccess = protected)
         % NodeType: This is where the variable is stored (e.g., X_k pose). This
         % will depend on the type of variable stored.
         % Note that this is updated and set using MATLAB's getter and setter
         % functions. 
         % Default value is set to NaN in order to know if it was instantiated.
         value = nan;
+        
+        % Node Id
+        id = nan;
     end   
     
     properties (Abstract = false, Access = protected)

@@ -9,12 +9,12 @@
 %   23-Feb-2021
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 classdef NodeR2 < BaseNode
-    %NODER2 Implementation of BaseNode on elements of R^2 space.
-    
+    %NODER2 Implementation of BaseNode on elements of R^2 space.    
     methods (Access = public)
         % Constructor
-        function obj = NodeR2()
-            obj = obj@BaseNode();
+        function obj = NodeR2( varargin)
+            % Call base constructor to initialize value if necessary.
+            obj = obj@BaseNode( varargin{:});
         end
     end
     
@@ -55,8 +55,11 @@ classdef NodeR2 < BaseNode
         % Type of this node should match that class name
         type = string( mfilename);
         
-        % Dimension or degrees of freedom of this node
+        % Dimension of this node
         dim = 2;
+        
+        % Degrees of freedom of this node
+        dof = 2;
     end          
 end
 
