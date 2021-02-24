@@ -54,7 +54,6 @@ classdef EdgeR2R2 < BaseEdge
         function isvalid = isValidCov( obj, mat_in)
             % First check size
             isvalid = true;
-%             isvalid = all( size( mat_in) == [obj.numRVs, obj.numRVs]);
             % Check if matrix is symmetric
             isvalid = isvalid & norm( mat_in - mat_in') <= 1e-5;
             % Check eigenvalues (this might be an expensive step that I might

@@ -77,22 +77,6 @@ classdef (Abstract) BaseEdge < handle
         end
         
         
-        
-        
-%         function val = get.infm( obj)
-%             % Get MEASUREMENT information matrix
-%             val = obj.infm;
-%         end
-        
-%         function val = get.sqrt_infm( obj)
-%             if ~obj.m_sqrt_infm_up_to_date && obj.m_infm_up_to_date
-%                 % Compute square root information matrix
-%                 obj.setSqrtInfm( obj.infm2sqrtInfm( obj.infm));
-%                 obj.m_sqrt_infm_up_to_date = true;
-%             end
-%             val = obj.sqrt_infm;
-%         end
-        
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         %   Setters
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -125,22 +109,7 @@ classdef (Abstract) BaseEdge < handle
             else
                 obj.meas = meas_in;
             end
-        end
-        
-%         function set.meas( obj, meas_in)
-%             % If input is nan then it means that the measurement is not
-%             % initialized
-%             if isscalar( meas_in) && isnan( meas_in)
-%                 obj.meas = meas_in;
-%                 return;
-%             end
-%             % Check if measurement is valid
-%             if ~obj.isValidMeas( meas_in)
-%                 error("Invalid measurement");
-%             end
-%             % Store measurement
-%             obj.meas = meas_in;
-%         end
+        end        
 
         function setCov( obj, cov_in)
             % Set covariance matrix
@@ -233,7 +202,6 @@ classdef (Abstract) BaseEdge < handle
             obj.m_err_2ndMoments_up_to_date = false;            
         end
         
-        
         function setErrInfm( obj, err_infm_in)            
             % Set information matrix and update other matrices
             if obj.isScalarNan( err_infm_in)
@@ -291,132 +259,6 @@ classdef (Abstract) BaseEdge < handle
             obj.m_rvs_2ndMoments_up_to_date = false;
         end
         
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        %   Getters
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        function val = get.meas( obj)            
-            % Display a warning if measurement is not initialized
-            if obj.isScalarNan( obj.meas)
-                warning('Measurement not set');
-            end
-            val = obj.meas;
-        end
-        
-        function val = get.cov( obj)
-            if obj.isScalarNan( obj.cov)
-                warning("Meas. covariance matrix not initialized");
-            end
-            val = obj.cov;
-        end
-        
-        % error getter (no setter)
-        function val = get.err_val( obj) 
-            % Need to compute error just in case the values of the nodes were
-            % updated (they can be updated externally since they are referenced
-            % objects).
-            obj.computeError();
-            
-            % Output the error value.
-            val = obj.err_val;
-        end
-        
-        function val = get.werr_val( obj)
-            % Get wegithed error value
-            
-            % Update error covariances
-            obj.updateErrCov();
-            val = obj.err_sqrt_infm * obj.err_val;
-        end
-        
-        % Get chi-squared distance
-        function val = get.chi2_val( obj)
-            % Compute the weighted error and return it's inner product
-            val = obj.werr_val' * obj.werr_val;
-        end
-                
-        function val = get.err_cov( obj)
-            % Check if the error covariance is up to date
-            if ~obj.m_err_2ndMoments_up_to_date ...
-                    && obj.m_rvs_2ndMoments_up_to_date
-                % Update error covariance
-                obj.updateErrCov();
-            end
-            % Warn user if the error covariance matrix is not initialized
-            if obj.isScalarNan( obj.err_cov)
-                warning("Error covariance matrix not initialized");
-            end                 
-            if ~obj.m_err_2ndMoments_up_to_date
-                warning("Error covariance matrix is not up to date");
-            end
-            val = obj.err_cov;
-        end
-                
-        function val = get.err_infm( obj)            
-            if ~obj.m_err_2ndMoments_up_to_date
-                % Update 2nd moment information
-                obj.updateErrCov();
-            end
-            % Warn user if the error information matrix is not initialized
-            if obj.isScalarNan( obj.err_infm)
-                warning("Error information matrix not initialized");
-            end
-            val = obj.err_infm;
-        end
-        
-        % Get error sqrt information matrix
-        function val = get.err_sqrt_infm( obj)
-            if obj.isScalarNan( obj.err_sqrt_infm)
-                warning("Error sqrt information matrix not initialized");
-            end
-            if ~obj.m_err_2ndMoments_up_to_date
-                % Update matrices
-                obj.updateErrCov();
-            end
-            val = obj.err_sqrt_infm;
-        end
-        
-%         % Update covariance, informatin, and square root information matrices
-%         function updateRvSecondMoments( obj)
-%             % It is assumed that the covariance matrix is not nan.
-%             if isnan( obj.cov_mat)
-%                 error("Covariance matrix not specified");
-%             end
-%             obj.inf_mat = inv( obj.cov_mat);
-%             [V, D] = eig( obj.inf_mat);
-%             obj.sqrt_mat = sqrt( D) * V';            
-%         end
-
-
-        % Update error covariance, information, and sqrt information
-        function updateErrCov( obj)
-            % The error function is a function of the noise terms. Therefore,
-            % the covariance on the error function is propagated using
-            % first-order methods or sigma point, or any other method.
-            % The user must be careful not to update the error covariance during
-            % a batch optimization problem; this would mess up the results.
-            
-            % If the 2nd-moment information on the random variables are
-            % up-to-date but the 2nd-moment informaiton on the error function
-            % are NOT up-to-date, then update the error function 2nd moments by
-            % propagating the covariance
-            if obj.m_rvs_2ndMoments_up_to_date && ~obj.m_err_2ndMoments_up_to_date
-                % Propagate covariance using first-order methods                
-                %   Get the Jacobian of the error function w.r.t. random variables
-                J_rv = obj.getErrJacobianRVs();
-                if any( isnan( J_rv))
-                    error( "Jacobian of error function w.r.t. random variables contains NaNs");
-                end
-                % Set the error covariance: this will also update the
-                % information and sqrt information matrices 
-                obj.setErrCov( J_rv * obj.cov * J_rv');
-                
-                % Both the RVs and error function 2nd-moment information are
-                % up-to-date.
-                obj.m_err_2ndMoments_up_to_date = true;
-                obj.m_rvs_2ndMoments_up_to_date = true;                
-            end
-        end
-        
         function setEndNodes(obj, varargin)
             % This sets the end_nodes cell array. 
             %   Note that the end nodes should be passed by reference.
@@ -467,6 +309,123 @@ classdef (Abstract) BaseEdge < handle
         % params setter
         function setParams( obj, params_in)
             obj.params = params_in;
+        end
+        
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        %   Getters
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        function val = get.meas( obj)         
+            % Get measurement
+            
+            % Display a warning if measurement is not initialized
+            if obj.isScalarNan( obj.meas)
+                warning('Measurement not set');
+            end
+            val = obj.meas;
+        end
+        
+        function val = get.cov( obj)
+            if obj.isScalarNan( obj.cov)
+                warning("Meas. covariance matrix not initialized");
+            end
+            val = obj.cov;
+        end
+        
+        function val = get.err_cov( obj)
+            % Check if the error covariance is up to date
+            if ~obj.m_err_2ndMoments_up_to_date ...
+                    && obj.m_rvs_2ndMoments_up_to_date
+                % Update error covariance
+                obj.updateErrCov();
+            end
+            % Warn user if the error covariance matrix is not initialized
+            if obj.isScalarNan( obj.err_cov)
+                warning("Error covariance matrix not initialized");
+            end                 
+            if ~obj.m_err_2ndMoments_up_to_date
+                warning("Error covariance matrix is not up to date");
+            end
+            val = obj.err_cov;
+        end
+                
+        function val = get.err_infm( obj)            
+            if ~obj.m_err_2ndMoments_up_to_date
+                % Update 2nd moment information
+                obj.updateErrCov();
+            end
+            % Warn user if the error information matrix is not initialized
+            if obj.isScalarNan( obj.err_infm)
+                warning("Error information matrix not initialized");
+            end
+            val = obj.err_infm;
+        end
+        
+        % Get error sqrt information matrix
+        function val = get.err_sqrt_infm( obj)
+            if obj.isScalarNan( obj.err_sqrt_infm)
+            if ~obj.m_err_2ndMoments_up_to_date
+                % Update matrices
+                obj.updateErrCov();
+            end
+                warning("Error sqrt information matrix not initialized");
+            end
+            val = obj.err_sqrt_infm;
+        end
+        
+        % Get error values
+        function val = get.err_val( obj) 
+            % Need to compute error just in case the values of the nodes were
+            % updated (they can be updated externally since they are referenced
+            % objects).
+            obj.computeError();
+            
+            % Output the error value.
+            val = obj.err_val;
+        end
+        
+        function val = get.werr_val( obj)
+            % Get wegithed error value
+            
+            % Update error covariances
+            obj.updateErrCov();
+            val = obj.err_sqrt_infm * obj.err_val;
+        end
+        
+        % Get chi-squared distance
+        function val = get.chi2_val( obj)
+            % Compute the weighted error and return it's inner product
+            val = obj.werr_val' * obj.werr_val;
+        end
+        
+        
+        % Update error covariance, information, and sqrt information
+        function updateErrCov( obj)
+            % The error function is a function of the noise terms. Therefore,
+            % the covariance on the error function is propagated using
+            % first-order methods or sigma point, or any other method.
+            % The user must be careful not to update the error covariance during
+            % a batch optimization problem; this would mess up the results.
+            
+            % If the 2nd-moment information on the random variables are
+            % up-to-date but the 2nd-moment informaiton on the error function
+            % are NOT up-to-date, then update the error function 2nd moments by
+            % propagating the covariance
+            if obj.m_rvs_2ndMoments_up_to_date && ~obj.m_err_2ndMoments_up_to_date
+                % Propagate covariance using first-order methods                
+                %   Get the Jacobian of the error function w.r.t. random variables
+                J_rv = obj.getErrJacobianRVs();
+                if any( isnan( J_rv))
+                    error( "Jacobian of error function w.r.t. random variables contains NaNs");
+                end
+                % Set the error covariance: this will also update the
+                % information and sqrt information matrices 
+                obj.setErrCov( J_rv * obj.cov * J_rv');
+                
+                % Both the RVs and error function 2nd-moment information are
+                % up-to-date.
+                obj.m_err_2ndMoments_up_to_date = true;
+                obj.m_rvs_2ndMoments_up_to_date = true;                
+            end
         end
     end
     
@@ -572,21 +531,6 @@ classdef (Abstract) BaseEdge < handle
         % Square root information matrix on the RANDOM VARAIBLES (i.e., the
         % process or measurement noise).
         sqrt_infm = nan;
-                
-%         % Flags to determine whether variables are set or not
-%         m_meas_initialized = false;
-%         m_cov_initialized  = false;      
-        
-        % Matrices that need updating. Whenever one of the matrices is updated,
-        % the others booleans must be turned off.
-%         m_cov_up_to_date       = false;
-%         m_infm_up_to_date      = false;
-%         m_sqrt_infm_up_to_date = false;
-
-%         % Error matrices that need updating
-%         m_err_cov_up_to_date       = false;
-%         m_err_infm_up_to_date      = false;
-%         m_err_sqrt_infm_up_to_date = false;
 
         % Random variable second moments (covariance, information, sqrt
         % information) are up to date
@@ -627,9 +571,4 @@ end
 %       The Nodes are passed by REFERENCE! This would allow for efficiency in
 %       implementation but caution must also be exercised.
 %   TODO
-%       1. Change the variable names. Perhaps dismiss the *_mat for matrices.
-%       For the information matrix, write `infm' not to confuse it with inf (for
-%       infinity).
-%
-%       2. Update variable names as to follow a certain convention. 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
