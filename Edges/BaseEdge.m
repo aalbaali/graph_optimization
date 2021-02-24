@@ -327,6 +327,12 @@ classdef (Abstract) BaseEdge < handle
             obj.updateErrCov();
             val = obj.err_sqrt_infm * obj.err_val;
         end
+        
+        % Get chi-squared distance
+        function val = get.chi2_val( obj)
+            % Compute the weighted error and return it's inner product
+            val = obj.werr_val' * obj.werr_val;
+        end
                 
         function val = get.err_cov( obj)
             % Check if the error covariance is up to date
@@ -539,6 +545,9 @@ classdef (Abstract) BaseEdge < handle
                 
         % Weighted error
         werr_val = nan;
+        
+        % Chi squared value
+        chi2_val = nan;
         
         % Square root information matrix of the ERROR function.
         err_sqrt_infm = nan;
