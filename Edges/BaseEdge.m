@@ -34,9 +34,9 @@ classdef (Abstract) BaseEdge < handle
             % Input paraser
             p = inputParser;
             
-            addOptional( p, 'params', defaultParams, validParams);
-            addOptional( p, 'id', defaultId, validId);
-            addOptional( p, 'endNodes', defaultEndNodes, validEndNodes);
+            addParameter( p, 'params', defaultParams, validParams);
+            addParameter( p, 'id', defaultId, validId);
+            addParameter( p, 'endNodes', defaultEndNodes, validEndNodes);
             
             % Parse input
             parse( p, varargin{:});

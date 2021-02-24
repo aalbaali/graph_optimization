@@ -36,7 +36,7 @@ classdef BaseNode < handle
             
             % Optional
             addOptional( p, 'value', defaultValue, validValue);            
-            addOptional( p, 'id', defaultId, validId);
+            addParameter( p, 'id', defaultId, validId);
             
             % Parse 
             parse(p, varargin{:});
@@ -46,6 +46,11 @@ classdef BaseNode < handle
             obj.id    = p.Results.id;
         end
         
+        % Internal function setter
+        function set.value( obj, value_in)
+            obj.m_value_initialized = true;
+            obj.value = value_in;
+        end
         % Value setter. Verify that the value is a valid element.
         function setValue(obj, value_in)
             % @params[in] value_in: the value to be stored in the node. It

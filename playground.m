@@ -15,6 +15,10 @@ close all;
 A = [0, 1; -1, -1];
 B = [0; 1];
 L = [ B, eye( 2)];
+params = struct('A', A, 'B', B, 'L', L);
+
+% For this system, define a new constructor
+Edge = @(varargin) EdgeR2R2('params', params, varargin{:});
 
 % Specify the measurement
 u = 1;
@@ -30,9 +34,7 @@ X2 = NodeR2();
 edge_x1x2 = EdgeR2R2();
 
 % Specfiy the process parameters
-edge_x1x2.A = A;
-edge_x1x2.B = B;
-edge_x1x2.L = L;
+edge_x1x2.setParams( params);
 
 % Specify the information matrix
 % Add the two poses to the edges

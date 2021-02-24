@@ -12,31 +12,6 @@ classdef EdgeR2R2 < BaseEdge
         function obj = EdgeR2R2( varargin)
             obj = obj@BaseEdge( varargin{:});
         end
-        
-        % Functions to set the matrices of the linear process model        
-        function set.A( obj, A_in)
-            if ~all( size( A_in) == [ obj.errDim, obj.errDim])
-                error("Invalid size");
-            end
-            obj.A = A_in;
-        end
-        
-        function set.B( obj, B_in)
-            if ~all( size( B_in) == [ obj.errDim, obj.measDim])
-                error("Invalid size");
-            end
-            obj.B = B_in;
-        end
-        
-        function set.L( obj, L_in)
-            if ~all( size( L_in) == [ obj.errDim, obj.numRVs])
-                error("Invalid size");
-            end
-            obj.L = L_in;
-        end
-    end
-    
-    methods (Static = true)
     end
     
     methods (Static = false, Access = protected)
@@ -49,19 +24,18 @@ classdef EdgeR2R2 < BaseEdge
             X2 = obj.endNodes{2}.value;
             
             % Unweighted error
-            obj.err_val = X2 - obj.A * X1 - obj.B * obj.meas;
+            obj.err_val = X2 - obj.params.A * X1 - obj.params.B * obj.meas;
         end
         
         % A function that computes the error Jacobians w.r.t. states/nodes
         function H = getErrJacobiansNodes( obj)
-            H = obj.A;
+            H = obj.params.A;
         end
         % A function that computes the error Jacobians w.r.t. the random
         % variables
         function L = getErrJacobianRVs( obj)
-            L = obj.L;
+            L = obj.params.L;
         end
-        
         
         % Measurement validator
         function isvalid = isValidMeas( obj, meas_in)
@@ -103,12 +77,5 @@ classdef EdgeR2R2 < BaseEdge
         % Number of random variables. 1. noise on the interoceptive measurement
         % u, and 2 on process noise w_1 and w_2.
         numRVs = 3;
-    end
-    
-    properties 
-        % Sysetm matrices
-        A = nan;
-        B = nan;
-        L = nan;
     end
 end
