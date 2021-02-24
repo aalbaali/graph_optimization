@@ -23,6 +23,7 @@ classdef (Abstract) BaseEdge < handle
             defaultParams   = struct();
             defaultId       = nan();
             defaultEndNodes = cell(1, obj.numEndNodes);
+            defaultMeas     = nan();
             
             % No validator for the parameters
             validParams = @(params) true;
@@ -30,6 +31,10 @@ classdef (Abstract) BaseEdge < handle
                 ( isscalar( id) && isnan( id));
             validEndNodes = @(endNodesCell) length( endNodesCell) == ...
                 obj.numEndNodes;
+            validMeas = @(meas) (isscalar(meas) && isnan( meas)) || ...
+                obj.isValidMeas( meas);
+            validCov = @(cov) (isscalar(cov) && isnan( meas)) || ...
+                obj.isValidCov( cov);
             
             % Input paraser
             p = inputParser;
@@ -37,6 +42,8 @@ classdef (Abstract) BaseEdge < handle
             addParameter( p, 'params', defaultParams, validParams);
             addParameter( p, 'id', defaultId, validId);
             addParameter( p, 'endNodes', defaultEndNodes, validEndNodes);
+            addParameter( p, 'meas', defaultMeas, validMeas);
+            addParameter( p, 'cov', defaultMeas, validCov);
             
             % Parse input
             parse( p, varargin{:});
@@ -45,20 +52,34 @@ classdef (Abstract) BaseEdge < handle
             obj.params   = p.Results.params;
             obj.id       = p.Results.id;
             obj.endNodes = p.Results.endNodes;
+            obj.meas     = p.Results.meas;
+            obj.set_cov_mat( p.Results.cov);
         end
         
         % # measurement setter and getter
+        function obj = setMeas( obj, meas_in)
+            % Takes a scalar nan or a valid measurement
+            if isscalar( meas_in) && isnan( meas_in)
+                obj.meas = nan();
+                return;
+            else
+                obj.meas = meas_in;
+            end
+        end
         % Measurement setter
         function set.meas( obj, meas_in)
+            % If input is nan then it means that the measurement is not
+            % initialized
+            if isscalar( meas_in) && isnan( meas_in)
+                obj.meas = meas_in;
+                return;
+            end
             % Check if measurement is valid
             if ~obj.isValidMeas( meas_in)
                 error("Invalid measurement");
             end
             % Store measurement
             obj.meas = meas_in;
-            
-            % Value to output
-            obj.meas;
         end
         
         % Getters
@@ -70,7 +91,7 @@ classdef (Abstract) BaseEdge < handle
         end
         
         function val = get.inf_mat( obj)
-            if any( isnan( obj.inf_mat))
+            if any( isnan( obj.inf_mat), 'all') && all(~isnan( obj.cov_mat), 'all')
                 % Compute information matrix
                 obj.inf_mat = inv( obj.cov_mat);
             end
@@ -130,6 +151,11 @@ classdef (Abstract) BaseEdge < handle
         
         % RV covariance matrix setter and getter
         function set.cov_mat( obj, cov_mat_in)
+            % If cov_mat_in == nan then it means it's not initialized
+            if isscalar( cov_mat_in) && isnan( cov_mat_in)
+                obj.cov_mat = cov_mat_in;
+                return;
+            end
             % Check validity
             if ~obj.isValidCov( cov_mat_in)
                 warning("Invalid covariance matrix");                
@@ -387,20 +413,21 @@ classdef (Abstract) BaseEdge < handle
         
         % Edge id
         id = nan;        
-    end
-    
-    properties      
+        
         % Instances of the end nodes. They should be REFERENCES to the nodes.
         endNodes = nan;
         
         % Measurements realization (expected value)
-        meas = nan;
-        
+        meas = nan;        
                 
         % Information matrix of the ERROR function, not the measurements! The
         % information will be stored in information form. The informaiton matrix
         % can be set externally (for example to zero).
-        err_inf_mat = nan;        
+        err_inf_mat = nan;      
+    end
+    
+    properties      
+          
     end
 end
 
@@ -417,4 +444,10 @@ end
 %       
 %       The Nodes are passed by REFERENCE! This would allow for efficiency in
 %       implementation but caution must also be exercised.
+%   TODO
+%       1. Change the variable names. Perhaps dismiss the *_mat for matrices.
+%       For the information matrix, write `infm' not to confuse it with inf (for
+%       infinity).
+%
+%       2. Update variable names as to follow a certain convention. 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
