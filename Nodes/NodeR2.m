@@ -33,7 +33,7 @@ classdef NodeR2 < BaseNode
         % Check validity of the element
         function isvalid = isValidValue( value_in)
             % Value should be a [2x1] column matrix
-            isvalid = all( size( value_in) == [2, 1]);
+            isvalid = all( size( value_in) == [ 2, 1]);
                         
             isvalid = isvalid && all( ~isinf( value_in));
             isvalid = isvalid && all( ~isnan( value_in));
@@ -49,8 +49,7 @@ classdef NodeR2 < BaseNode
         end
     end
     
-    properties (Constant = true)
-        %   The m_* prefix indicates that it's a 'member' variable
+    properties (Constant = true)        
         
         % Type of this node should match that class name
         type = string( mfilename);

@@ -9,229 +9,394 @@
 %   --------------------------------------------------------------------------
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 classdef (Abstract) BaseEdge < handle
-    %BASENODE Necessary functions and variables to implement a node class
+    %BASEEDGE Necessary functions and variables to implement an Edge class
     
-    methods 
-        % Constructor. Add input paraser to parse params.
+    methods         
+        %   The constructor can take multiple optional/parameters arguments. To
+        %   use the constructore, pass in a value or name-value pair depending
+        %   on the type of argument (if it's `optional', then do not specify
+        %   name-value pair, if it's `parameter' then specify name-value pair). 
+        %
+        %   In the constructor of the implementation class, call the BaseNode
+        %   constructor using
+        %       obj@BaseEdge( varargin{:})  
         function obj = BaseEdge( varargin)            
-            % (optional) @params[in] 'params' : struct of params needed for the Edge
-            % implementation.
-            % (optional) @params[in] 'id' : edgeId
-            % (optional) @params[in] 'endNodes' : Cell array of endNodes.
+            % @params[in][parameter] 'params'
+            %   Struct of params needed for the implemented class
+            % @params[in][parameter] 'id'
+            %   Positive real scalar for the edge id.
+            % @params[in][parameter] 'end_nodes'
+            %   Cell array of end_nodes. E.g., { X1, X2}
+            % @params[in]parameter] 'meas'
+            %   Measurement value.
+            % @params[in][parameter] 'covariance'
+            %   Measurement (random variables) covariance matrix. Not to be
+            %   confused with the covariance on the error function.
+            
+            % Initialize the end nodes to empty cell array of the appropriate
+            % size
+            obj.end_nodes = cell( 1, obj.numEndNodes);
+            % Set all nodes to 'uninitialized'
+            obj.valid_end_nodes = false( 1, obj.numEndNodes);
             
             % Default values
-            defaultParams   = struct();
-            defaultId       = nan();
-            defaultEndNodes = cell(1, obj.numEndNodes);
-            defaultMeas     = nan();
+            default_params     = struct();
+            default_id         = nan();
+            default_end_nodes  = cell(1, obj.numEndNodes);
+            default_meas       = nan();
+            default_covariance = nan();
             
             % No validator for the parameters
-            validParams = @(params) true;
-            validId     = @(id) obj.isValidId( id) || ...
-                ( isscalar( id) && isnan( id));
-            validEndNodes = @(endNodesCell) length( endNodesCell) == ...
-                obj.numEndNodes;
-            validMeas = @(meas) (isscalar(meas) && isnan( meas)) || ...
-                obj.isValidMeas( meas);
-            validCov = @(cov) (isscalar(cov) && isnan( meas)) || ...
-                obj.isValidCov( cov);
+            isValidParams = @(params) true;
+            isValidId     = @(id) obj.isValidId( id) ||  ( obj.isScalarNan( id));
+            isValidEndNodes = @(endNodesCell) length( endNodesCell) ...
+                == obj.numEndNodes;
+            isValidMeas = @(meas) obj.isScalarNan( meas) ...
+                || obj.isValidMeas( meas);
+            isValidCov = @(cov) obj.isScalarNan( cov) ...
+                || obj.isValidCov( cov);
             
             % Input paraser
             p = inputParser;
             
-            addParameter( p, 'params', defaultParams, validParams);
-            addParameter( p, 'id', defaultId, validId);
-            addParameter( p, 'endNodes', defaultEndNodes, validEndNodes);
-            addParameter( p, 'meas', defaultMeas, validMeas);
-            addParameter( p, 'cov', defaultMeas, validCov);
+            addParameter( p, 'params', default_params, isValidParams);
+            addParameter( p, 'id', default_id, isValidId);
+            addParameter( p, 'endNodes', default_end_nodes, isValidEndNodes);
+            addParameter( p, 'meas', default_meas, isValidMeas);
+            addParameter( p, 'cov', default_covariance, isValidCov);
             
             % Parse input
             parse( p, varargin{:});
             
             % Store objects
-            obj.params   = p.Results.params;
-            obj.id       = p.Results.id;
-            obj.endNodes = p.Results.endNodes;
-            obj.meas     = p.Results.meas;
-            obj.set_cov_mat( p.Results.cov);
+            obj.setParams(   p.Results.params);
+            obj.setId(       p.Results.id);            
+            obj.setEndNodes( p.Results.endNodes{ :});
+            obj.setMeas(     p.Results.meas);
+            obj.setCov(      p.Results.cov);
         end
         
-        % # measurement setter and getter
+        
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        %   Setters
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        function obj = setId( obj, id_in)
+            %SETID Sets the edge id.
+            
+            % Check if input is a scalar nan
+            if obj.isScalarNan( id_in)
+                obj.id = id_in;                
+                return;
+            end
+            
+            % Check if the id is valid
+            if obj.isValidId( id_in)
+                % Store as an integer
+                obj.id = int8( id_in);
+            else
+                error("Invalid id input");
+            end
+        end
+        
         function obj = setMeas( obj, meas_in)
+            % SETMEAS: Set the measurement (expected value).
             % Takes a scalar nan or a valid measurement
-            if isscalar( meas_in) && isnan( meas_in)
+            
+            % Check if measurement is a scalar nan
+            if obj.isScalarNan( meas_in)
                 obj.meas = nan();
                 return;
             else
                 obj.meas = meas_in;
             end
-        end
-        % Measurement setter
-        function set.meas( obj, meas_in)
-            % If input is nan then it means that the measurement is not
-            % initialized
-            if isscalar( meas_in) && isnan( meas_in)
-                obj.meas = meas_in;
+        end        
+
+        function setCov( obj, cov_in)
+            % Set covariance matrix
+            
+            % If it's a scalar nan, then simply store that
+            if obj.isScalarNan( cov_in)
+                obj.cov = nan;
+                obj.m_rvs_2ndMoments_up_to_date = false;
                 return;
             end
-            % Check if measurement is valid
-            if ~obj.isValidMeas( meas_in)
-                error("Invalid measurement");
+            % Check if matrix is valid
+            if obj.isValidCov( cov_in)                
+                
+                obj.cov = cov_in;                
+                
+                % Update other matrices
+                obj.infm      = inv( obj.cov);
+                obj.sqrt_infm = obj.infm2sqrtInfm( obj.infm);
+                
+            else %its an invalid matrix 
+                warning("Invalid covariance matrix");
+                
+                obj.cov = cov_in;
+                
+                % Update other matrices. Do not call setInfm to avoid getting in
+                % an infinite loop
+                obj.infm      = nan( size( obj.cov));
+                obj.sqrt_infm = nan( size( obj.cov));                
             end
-            % Store measurement
-            obj.meas = meas_in;
+            
+            % Random variable second moments are up to date.
+            obj.m_rvs_2ndMoments_up_to_date = true;
+            obj.m_err_2ndMoments_up_to_date = false;            
         end
         
-        % Getters
-        function val = get.meas( obj)
-            if isnan( obj.meas)
+        function setInfm( obj, infm_in)
+            % Set information matrix and update other matrices
+            if obj.isScalarNan( infm_in)
+                obj.infm = nan;
+                obj.m_rvs_2ndMoments_up_to_date = false;
+                return;
+            end
+            
+            if obj.isValidCov( infm_in)              
+                obj.infm = infm_in;
+                obj.m_infm_up_to_date  = true;
+                
+                % Update other matrices
+                obj.cov       = inv( obj.infm);
+                obj.sqrt_infm = obj.infm2sqrtInfm( obj.infm);
+            else% its an invalid matrix
+                warning("Invalid information matrix");
+                
+                obj.infm = infm_in;
+                
+                % Update other matrices
+                obj.cov       = nan( size( obj.infm));
+                obj.sqrt_infm = nan( size( obj.infm));                
+            end
+            
+            obj.m_rvs_2ndMoments_up_to_date = true;
+            obj.m_err_2ndMoments_up_to_date = false;            
+        end
+        
+        function setSqrtInfm( obj, sqrt_infm_in)
+            % Check if it's a scalar nan
+            if isScalarNan( sqrt_infm_in)
+                obj.sqrt_infm = sqrt_infm_in;
+                obj.m_rvs_2ndMoments_up_to_date = false;
+                return;
+            end
+            % Check if the square is a valid ifnromation matrix
+            if obj.isValidCov( sqrt_infm_in' * sqrt_infm_in)
+                obj.sqrt_infm = sqrt_infm_in;
+                
+                % Update other matrices
+                obj.infm = obj.sqrt_infm' * obj.sqrt_infm;
+                obj.cov  = inv( obj.infm);
+            else% its an invalid matrix
+                warning("Invalid square root information matrix");
+                
+                obj.sqrt_infm = sqrt_infm_in;
+                
+                % Update other matrices
+                obj.infm = nan( size( sqrt_infm_in));
+                obj.cov  = nan( size( sqrt_infm_in));
+            end
+            
+            obj.m_rvs_2ndMoments_up_to_date = true;
+            obj.m_err_2ndMoments_up_to_date = false;            
+        end
+        
+        function setErrInfm( obj, err_infm_in)            
+            % Set information matrix and update other matrices
+            if obj.isScalarNan( err_infm_in)
+                obj.err_infm = nan;     
+                obj.m_err_2ndMoments_up_to_date = false;
+                return;
+            end
+            
+            if obj.isValidCov( err_infm_in)              
+                obj.err_infm = err_infm_in;                
+                
+                % Update other matrices
+                obj.err_cov       = inv( obj.err_infm);
+                obj.err_sqrt_infm = obj.infm2sqrtInfm( obj.err_infm);
+            else% its an invalid matrix
+                warning("Invalid information matrix");
+                
+                obj.err_infm = err_infm_in;
+                
+                % Update other matrices
+                obj.err_cov       = nan( size( obj.err_infm));
+                obj.err_sqrt_infm = nan( size( obj.err_infm));                
+            end
+            
+            obj.m_err_2ndMoments_up_to_date = true;
+            obj.m_rvs_2ndMoments_up_to_date = false;
+        end
+        
+        function setErrCov( obj, err_cov_in)
+            % Set information matrix and update other matrices
+            if obj.isScalarNan( err_cov_in)
+                obj.err_cov = nan;    
+                obj.m_err_2ndMoments_up_to_date = false;            
+                return;
+            end
+            
+            if obj.isValidCov( err_cov_in)              
+                obj.err_cov = err_cov_in;                
+                obj.m_err_2ndMoments_up_to_date = true;                
+            
+                % Update other matrices
+                obj.err_infm       = inv( obj.err_cov);
+                obj.err_sqrt_infm  = obj.infm2sqrtInfm( obj.err_infm);
+            else% its an invalid matrix
+                warning("Invalid information matrix");
+                
+                obj.err_cov = err_cov_in;
+                obj.m_err_2ndMoments_up_to_date = true;
+                
+                % Update other matrices
+                obj.err_infm      = nan( size( obj.err_cov));
+                obj.err_sqrt_infm = nan( size( obj.err_infm));                
+            end
+            
+            obj.m_rvs_2ndMoments_up_to_date = false;
+        end
+        
+        function setEndNodes(obj, varargin)
+            % This sets the end_nodes cell array. 
+            %   Note that the end nodes should be passed by reference.
+            % varargin should be of length equal to numEndNodes. If a specific
+            % node is to be set, then use `setEndNode'
+            if length( varargin) ~= obj.numEndNodes
+                error("Number of input arguments is invalid");
+            end
+            for lv1 = 1 : obj.numEndNodes                
+                obj.setEndNode( lv1, varargin{ lv1});                
+            end
+        end
+        
+        
+        function setEndNode( obj, num, node)
+            % Sets a single endNode
+            % @params[in] num : 
+            %   The NUMBER (positive int) of the node to be added (the order
+            %   from the cell array). E.g., num = 2 indicates that we want to
+            %   set the second node.
+            % @params[in] node : 
+            %   Node struct. A reference to the node to be added.
+            
+            % Check validity of the number
+            if ~( isscalar( num) && isreal( num) && num > 0 ...
+                && num <= obj.numEndNodes)
+                error("Invalid number");
+            end
+            
+            % Check if node is an empty variable. In such case, just fill an
+            % empty cell.
+            if isempty( node)
+                obj.end_nodes{ num} = nan;
+                return;
+            end
+            % Check if node is valid
+            if ~( strcmp( node.type, obj.endNodeTypes( num)))
+                % Invalid type
+                error("Invalid node type. It should be of type %s", ...
+                    obj.endNodeTypes( num));
+            end
+            obj.end_nodes{ num} = node;  
+            
+            % Set the node to a 'valid' node.
+            obj.valid_end_nodes( num) = true;
+        end
+        
+        % params setter
+        function setParams( obj, params_in)
+            obj.params = params_in;
+        end
+        
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        %   Getters
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        function val = get.meas( obj)         
+            % Get measurement
+            
+            % Display a warning if measurement is not initialized
+            if obj.isScalarNan( obj.meas)
                 warning('Measurement not set');
             end
             val = obj.meas;
         end
         
-        function val = get.inf_mat( obj)
-            if any( isnan( obj.inf_mat), 'all') && all(~isnan( obj.cov_mat), 'all')
-                % Compute information matrix
-                obj.inf_mat = inv( obj.cov_mat);
-            end
-            val = obj.inf_mat;
-        end
-        
-        function val = get.sqrt_mat( obj)
-            val = obj.sqrt_mat;
-        end
-        
-        % Setters
-        % Some of the set.* matrices are accessible only internally (protected).
-        % So they can't be accessed publicly.
-        function set_inf_mat( obj, inf_mat_in)
-            % Takes in the information matrix and updates the other matrices
-            obj.inf_mat = inf_mat_in;
-            
-            % Update covariance matrix
-            obj.cov_mat = inv( obj.inf_mat);
-            % Update sqrt information matrix
-            obj.sqrt_mat = obj.inf_mat_to_sqrt_mat( obj.inf_mat);
-            
-            obj.m_cov_mat_up_to_date  = true;
-            obj.m_inf_mat_up_to_date  = true;
-            obj.m_sqrt_mat_up_to_date = true;
-        end
-        
-        function set_cov_mat( obj, cov_mat_in)
-            obj.cov_mat = cov_mat_in;
-            
-            % Update information matrix
-            obj.inf_mat = inv( obj.cov_mat);
-            % Update sqrt information matrix
-            obj.sqrt_mat = obj.inf_mat_to_sqrt_mat( obj.inf_mat);
-            
-            obj.m_cov_mat_up_to_date  = true;
-            obj.m_inf_mat_up_to_date  = true;
-            obj.m_sqrt_mat_up_to_date = true;
-        end
-        
-        % RV informrmation matrix setter and getter
-        function set.inf_mat( obj, inf_mat_in)
-            % The validity of covariance matrix is the same as for the
-            % informaiton matrix
-            if ~obj.isValidCov( inf_mat_in)
-                warning("Invalid information matrix");
-            end
-            obj.inf_mat = inf_mat_in;
-        end
-        
-        function set.sqrt_mat( obj, sqrt_mat_in)
-            if ~obj.isValidCov( sqrt_mat_in' * sqrt_mat_in)
-                warning("Invalid sqrt information matrix");
-            end
-            obj.sqrt_mat = sqrt_mat_in;
-        end
-        
-        % RV covariance matrix setter and getter
-        function set.cov_mat( obj, cov_mat_in)
-            % If cov_mat_in == nan then it means it's not initialized
-            if isscalar( cov_mat_in) && isnan( cov_mat_in)
-                obj.cov_mat = cov_mat_in;
-                return;
-            end
-            % Check validity
-            if ~obj.isValidCov( cov_mat_in)
-                warning("Invalid covariance matrix");                
-            end
-            obj.cov_mat = cov_mat_in;
-        end
-        
-        function val = get.cov_mat( obj)
-            if any( isnan( obj.cov_mat))
+        function val = get.cov( obj)
+            if obj.isScalarNan( obj.cov)
                 warning("Meas. covariance matrix not initialized");
             end
-            val = obj.cov_mat;
+            val = obj.cov;
         end
         
-        % error getter (no setter)
-        function val = get.err_val( obj)            
-            obj.computeError();
-            val = obj.err_val;
-        end
-        
-        % get weighted error (no setter)
-        function val = get.werr_val( obj)
-            % Update error covariances
-            obj.updateErrCov();
-            val = obj.err_sqrt_inf_mat * obj.err_val;
-        end
-        
-        % err_cov getter (no setter)
-        function val = get.err_cov_mat( obj)
-            if any( isnan( obj.cov_mat))
-                warning("Meas. covariance matrix not initialized");
-            end            
-            val = obj.err_cov_mat;
-        end
-        
-        % err_inf getter (no setter)
-        function val = get.err_inf_mat( obj)
-            if any( isnan( obj.cov_mat))
-                warning("Meas. covariance matrix not initialized");
+        function val = get.err_cov( obj)
+            % Check if the error covariance is up to date
+            if ~obj.m_err_2ndMoments_up_to_date ...
+                    && obj.m_rvs_2ndMoments_up_to_date
+                % Update error covariance
+                obj.updateErrCov();
             end
-            if ~obj.m_err_inf_mat_up_to_date
-                warning("Error information matrix is not up to date");
+            % Warn user if the error covariance matrix is not initialized
+            if obj.isScalarNan( obj.err_cov)
+                warning("Error covariance matrix not initialized");
+            end                 
+            if ~obj.m_err_2ndMoments_up_to_date
+                warning("Error covariance matrix is not up to date");
             end
-            val = obj.err_inf_mat;
+            val = obj.err_cov;
+        end
+                
+        function val = get.err_infm( obj)            
+            if ~obj.m_err_2ndMoments_up_to_date
+                % Update 2nd moment information
+                obj.updateErrCov();
+            end
+            % Warn user if the error information matrix is not initialized
+            if obj.isScalarNan( obj.err_infm)
+                warning("Error information matrix not initialized");
+            end
+            val = obj.err_infm;
         end
         
         % Get error sqrt information matrix
-        function val = get.err_sqrt_inf_mat( obj)
-            if ~obj.m_err_sqrt_mat_up_to_date
-                warning("Error sqrt information matrix is not up to date");
+        function val = get.err_sqrt_infm( obj)
+            if obj.isScalarNan( obj.err_sqrt_infm)
+            if ~obj.m_err_2ndMoments_up_to_date
+                % Update matrices
+                obj.updateErrCov();
             end
-            val = obj.err_sqrt_inf_mat;
-        end
-        % Update covariance, informatin, and square root information matrices
-        function updateRvSecondMoments( obj)
-            % It is assumed that the covariance matrix is not nan.
-            if isnan( obj.cov_mat)
-                error("Covariance matrix not specified");
+                warning("Error sqrt information matrix not initialized");
             end
-            obj.inf_mat = inv( obj.cov_mat);
-            [V, D] = eig( obj.inf_mat);
-            obj.sqrt_mat = sqrt( D) * V';            
+            val = obj.err_sqrt_infm;
         end
         
-        function set_err_inf_mat( obj, err_inf_mat_in)
-            obj.err_inf_mat = err_inf_mat_in;
-            obj.err_sqrt_inf_mat = obj.inf_mat_to_sqrt_mat( obj.err_inf_mat);
+        % Get error values
+        function val = get.err_val( obj) 
+            % Need to compute error just in case the values of the nodes were
+            % updated (they can be updated externally since they are referenced
+            % objects).
+            obj.computeError();
             
-            obj.m_err_inf_mat_up_to_date  = true;
-            obj.m_err_sqrt_mat_up_to_date = true;
-            obj.m_err_cov_mat_up_to_date  = false;
-            
-            % The covariance on the random variables is no longer valid in this
-            % case
-            obj.m_cov_mat_up_to_date = false;
+            % Output the error value.
+            val = obj.err_val;
         end
+        
+        function val = get.werr_val( obj)
+            % Get wegithed error value
+            
+            % Update error covariances
+            obj.updateErrCov();
+            val = obj.err_sqrt_infm * obj.err_val;
+        end
+        
+        % Get chi-squared distance
+        function val = get.chi2_val( obj)
+            % Compute the weighted error and return it's inner product
+            val = obj.werr_val' * obj.werr_val;
+        end
+        
         
         % Update error covariance, information, and sqrt information
         function updateErrCov( obj)
@@ -240,65 +405,27 @@ classdef (Abstract) BaseEdge < handle
             % first-order methods or sigma point, or any other method.
             % The user must be careful not to update the error covariance during
             % a batch optimization problem; this would mess up the results.
-            if obj.m_cov_mat_up_to_date && ~obj.m_err_inf_mat_up_to_date                
-                % For now, let's do a first-order covariance
+            
+            % If the 2nd-moment information on the random variables are
+            % up-to-date but the 2nd-moment informaiton on the error function
+            % are NOT up-to-date, then update the error function 2nd moments by
+            % propagating the covariance
+            if obj.m_rvs_2ndMoments_up_to_date && ~obj.m_err_2ndMoments_up_to_date
+                % Propagate covariance using first-order methods                
                 %   Get the Jacobian of the error function w.r.t. random variables
                 J_rv = obj.getErrJacobianRVs();
                 if any( isnan( J_rv))
                     error( "Jacobian of error function w.r.t. random variables contains NaNs");
                 end
-                obj.err_cov_mat = J_rv * obj.cov_mat * J_rv';
-                obj.m_err_cov_mat_up_to_date  = true;
+                % Set the error covariance: this will also update the
+                % information and sqrt information matrices 
+                obj.setErrCov( J_rv * obj.cov * J_rv');
                 
-                % Compute information matrix
-                obj.err_inf_mat = inv( obj.err_cov_mat);
-                obj.m_err_inf_mat_up_to_date  = true;
-                
-                % Compute square root matrix
-                %   Get eigendecomposition and then store sqrt( D) * V'            
-                obj.err_sqrt_inf_mat = obj.inf_mat_to_sqrt_mat( obj.err_inf_mat);
-                obj.m_err_sqrt_mat_up_to_date = true;
+                % Both the RVs and error function 2nd-moment information are
+                % up-to-date.
+                obj.m_err_2ndMoments_up_to_date = true;
+                obj.m_rvs_2ndMoments_up_to_date = true;                
             end
-        end
-        
-        % A function that sets the endNodes cell array
-        function setEndNodes(obj, varargin)
-            % varargin should be of length equal to numEndNodes. If a specific
-            % node is to be set, then use `setEndNode'
-            if length( varargin) ~= obj.numEndNodes
-                error("Number of input arguments is invalid");
-            end
-            for lv1 = 1 : obj.numEndNodes
-                obj.setEndNode( lv1, varargin{lv1});
-            end
-        end
-        
-        % A function that sets a single endNode
-        function setEndNode( obj, num, node)
-            % @params[in] num : The NUMBER (positive int) of the node to be
-            % added (the order from the cell array). E.g., num = 2 indicates
-            % that we want to set the second node.
-            % @params[in] node : Node struct. A reference to the node to be
-            % added.
-            
-            % Check validity of the number
-            if ~( isscalar( num) && isreal( num) && num > 0 ...
-                && num <= obj.numEndNodes)
-                error("Invalid number");
-            end
-            
-            % Check if node is valid
-            if ~( strcmp( node.type, obj.endNodeTypes( num)))
-                % Invalid type
-                error("Invalid node type. It should be of type %s", ...
-                    obj.endNodeTypes( num));
-            end
-            obj.endNodes{ num} = node;            
-        end
-        
-        % params setter
-        function setParams( obj, params_in)
-            obj.params = params_in;
         end
     end
     
@@ -320,9 +447,10 @@ classdef (Abstract) BaseEdge < handle
         isvalid = isValidCov( obj, mat);     
     end
     
-    methods (Abstract = false, Static = true)
-        % Information matrix to sqrt information matrix
-        function sqrt_mat = inf_mat_to_sqrt_mat( inf_mat)
+    methods (Abstract = false, Static = true)        
+        function sqrt_mat = infm2sqrtInfm( inf_mat)
+            % infm2sqrtInfm
+            %   Information matrix to sqrt information matrix
             %   This gives 
             %       sqrt_mat' * sqrt_mat == inf_mat
             [V, D] = eig( inf_mat);
@@ -333,6 +461,11 @@ classdef (Abstract) BaseEdge < handle
         % static method.
         function isvalid = isValidId( id_in)
             isvalid = BaseNode.isValidId( id_in);
+        end
+        
+        % Check whether an element is a scalar nan
+        function out = isScalarNan( arg)
+            out = isscalar( arg) && isnan( arg);
         end
     end
     properties (Abstract = true, Constant = true)
@@ -372,62 +505,55 @@ classdef (Abstract) BaseEdge < handle
         % Weighted error
         werr_val = nan;
         
-        % Square root information matrix of the ERROR function.
-        err_sqrt_inf_mat = nan;
+        % Chi squared value
+        chi2_val = nan;
         
-        % Covariance matrix of the ERROR function, not the measurements!
-        % Covariance is computed (inverse of information matrix) when requested
-        % through the getter.
-        err_cov_mat = nan;      
+        % Square root information matrix of the ERROR function.
+        err_sqrt_infm = nan;
+        
+        % Covariance matrix on the ERROR function, not the measurements!        
+        err_cov = nan;      
+        
+        % Information matrix of the ERROR function, not the measurements! The
+        % information will be stored in information form. The informaiton matrix
+        % can be set by the user (for example to zero). This is the ``inverse''
+        % of the `err_cov' matrix if the matrix is invertible.
+        err_infm = nan;      
         
         % Covariance matrix on the RANDOM VARAIBLES (i.e., the process or
         % measurement noise).
-        cov_mat = nan;
+        cov = nan;
         
-        % Measurement information matrix on the RANDOM VARAIBLES (i.e., the
-        % process or measurement noise).
-        inf_mat = nan;
+        % Information matrix on the RANDOM VARAIBLES (i.e., the
+        % process or measurement noise). This is the inverse of `cov'        
+        infm = nan;
         
         % Square root information matrix on the RANDOM VARAIBLES (i.e., the
         % process or measurement noise).
-        sqrt_mat = nan;
-                
-        % Flags to determine whether variables are set or not
-        m_meas_initialized = false;
-        m_cov_initialized = false;      
+        sqrt_infm = nan;
+
+        % Random variable second moments (covariance, information, sqrt
+        % information) are up to date
+        m_rvs_2ndMoments_up_to_date = false;
+        % Error function second moments (covariance, information, sqrt
+        % information) are up to date
+        m_err_2ndMoments_up_to_date = false;
         
-        % Matrices that need updating. Whenever one of the matrices isupdated,
-        % the others booleans must be turned to off. 
-        m_cov_mat_up_to_date    = false;
-        m_inf_mat_up_to_date    = false;
-        m_sqrt_mat_up_to_date   = false;
-        
-        % Error matrices that need updating
-        m_err_cov_mat_up_to_date    = false;
-        m_err_inf_mat_up_to_date    = false;
-        m_err_sqrt_mat_up_to_date   = false;
-        
-        % Parameters. A struct of parameters that can be used by the
-        % implementation.
+        % Parameters. A struct of parameters that can be used by the implemented
+        % class.
         params = struct();
         
         % Edge id
         id = nan;        
         
         % Instances of the end nodes. They should be REFERENCES to the nodes.
-        endNodes = nan;
+        end_nodes;
+        
+        % Initialized end_nodes
+        valid_end_nodes;
         
         % Measurements realization (expected value)
         meas = nan;        
-                
-        % Information matrix of the ERROR function, not the measurements! The
-        % information will be stored in information form. The informaiton matrix
-        % can be set externally (for example to zero).
-        err_inf_mat = nan;      
-    end
-    
-    properties      
-          
     end
 end
 
@@ -445,9 +571,4 @@ end
 %       The Nodes are passed by REFERENCE! This would allow for efficiency in
 %       implementation but caution must also be exercised.
 %   TODO
-%       1. Change the variable names. Perhaps dismiss the *_mat for matrices.
-%       For the information matrix, write `infm' not to confuse it with inf (for
-%       infinity).
-%
-%       2. Update variable names as to follow a certain convention. 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

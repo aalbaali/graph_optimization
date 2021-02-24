@@ -16,62 +16,103 @@ classdef BaseNode < handle
     
     
     methods
-        % The constructor can take a 'value' argument. If no argument is
-        % provided, it'll be set to zero.
-        % In the constructor of the implementation class, call the BaseNode
-        % constructor using
+        %   The constructor can take multiple optional/parameters arguments. To
+        %   use the constructore, pass in a value or name-value pair depending
+        %   on the type of argument (if it's `optional', then do not specify
+        %   name-value pair, if it's `parameter' then specify name-value pair). 
+        %
+        %   In the constructor of the implementation class, call the BaseNode
+        %   constructor using
         %       obj@BaseNode( varargin{:})        
         function obj = BaseNode( varargin)                     
-            % @params[in] 'value': (optional) initial value of the node. If not
-            % specified, it'll be set to nan.
-            % @params[in] 'id' : positive real scalar. 
-            defaultValue = nan;
-            defaultId    = nan;
+            % @params[in][optional] 'value'
+            %   (optional) value of the node. If specified, then it must be
+            %   passed as the FIRST argument. 
+            %   Note that it canNOT be specified using name-value pair
+            %   (i.e., specifying 'value', [1;2] will NOT work!
+            %
+            % @params[in][parameter] 'id' 
+            %   Positive real scalar. If specified, it MUST be passed in using
+            %   name-value pairs. E.g., ('id', 5).
+            
+            % Default values
+            %   A `value' of nan implies it's not initialized.
+            default_value = nan;
+            %   An `id' of nan implies it's not initialized.
+            default_id    = nan;
             
             % Input parser
             p = inputParser;
-            % A scalar nan is a valid value (implies that it's uninitialized).
-            validValue = @(v) ( isscalar(v) && isnan(v)) || obj.isValidValue( v);
-            validId    = @(id) obj.isValidId( id) || ( isscalar( id) && isnan( id));
+            % Lambda functions for validating inputs            
+            %   A `value' can either be a valid value (check isValidValue) or it
+            %   can be a nan (scalar, not array).
+            isValidValue = @(v) ( isscalar(v) && isnan(v)) || obj.isValidValue( v);
+            %   An `id' can either be valid id (check isValidId) or it can be a
+            %   scalar nan (not array).
+            isValidId    = @(id) obj.isValidId( id) || ( isscalar( id) && isnan( id));
             
-            % Optional
-            addOptional( p, 'value', defaultValue, validValue);            
-            addParameter( p, 'id', defaultId, validId);
+            % `value' is `optional' (if passed, it MUST be the FIRST argument).
+            addOptional ( p, 'value', default_value, isValidValue);            
+            % `id' is `parameter' (if passed, it MUST be specified using
+            % name-value pair).
+            addParameter( p, 'id', default_id, isValidId);
             
             % Parse 
             parse(p, varargin{:});
             
             % Store results
-            obj.value = p.Results.value;
-            obj.id    = p.Results.id;
+            obj.setValue( p.Results.value);
+            obj.setId( p.Results.id);
         end
-        
-        % Internal function setter
-        function set.value( obj, value_in)
-            obj.m_value_initialized = true;
-            obj.value = value_in;
-        end
-        % Value setter. Verify that the value is a valid element.
-        function setValue(obj, value_in)
-            % @params[in] value_in: the value to be stored in the node. It
-            % accepts a value of nan (scalar) to indicate an empty 'value'
+                
+        function obj = setValue(obj, value_in)
+            %SETVALUE Checks if a value is valid and stores it in the object.            %
+            % @params[in] value_in: 
+            %   The value to be stored in the node. It accepts a value of nan
+            %   (scalar) which implies a non-initialized 'value'
+            
+            % Check if input is a scalar nan
             if isscalar( value_in) && isnan( value_in)
                 obj.value = value_in;
+                % Indicate that the value is not longer initialized.
                 obj.m_value_initialized = false;
                 return;
             end
+            
+            % If it's not a scalar nan, then check if the measurement is valid.
             if ~obj.isValidValue( value_in)
                 error("Invalid input");
             end
+            
             % Set the internal value
             obj.value = value_in;
             
-            % Set the marker to inialized
+            % Set the flag to indicate that the value is initialized.
             obj.m_value_initialized = true;
         end
+              
+        function obj = setId( obj, id_in)
+            %SETID  A method to set `id'
+            % @params[in] id: real positive integer
+
+            % Check if input is a scalar nan
+            if isscalar( id_in) && isnan( id_in)
+                obj.id = id_in;                
+                return;
+            end
+            
+            % Check if the id is valid
+            if obj.isValidId( id_in)
+                % Store as an integer
+                obj.id = int8( id_in);
+            else
+                error("Invalid id input");
+            end
+        end
         
-        % Value getter. Generate warning if value is not initialized.
         function value_out = get.value(obj)
+            %GET.VALUE Get the internal value.
+            %   Displays a warning if the value is not initialized.
             if ~obj.m_value_initialized
                 warning('Value not initialized');
             end
@@ -79,20 +120,22 @@ classdef BaseNode < handle
             value_out = obj.value;
         end       
         
-        % Increment local value with an increment
+        
         function out = increment( obj, increment)
-            % Check if value is instantiated
-            if isnan( obj.value)
+            %INCREMENT : Increment `value' with an increment using the
+            %   user-defined `oplus' method.
+            
+            % Check if value is initialized
+            if ~obj.m_value_initialized
                 error("Value not initialized");
             end
             
-            % Check validity of the increment
-            % The static `oplus' isValidIncrement is called.
+            % Check validity of the increment            
             if ~obj.isValidIncrement( increment)                
                 error("Invalid increment");
             end
             
-            % The static `oplus' element is called
+            % The (static) `oplus' element is called
             obj.value = obj.oplus( obj.value, increment);
             out = obj.value;
         end
@@ -102,22 +145,12 @@ classdef BaseNode < handle
             obj.increment( increment);
             out = obj.value;
         end
-        
-        % Set ID
-        function setId( obj, id_in)
-            % @params[in] id: real positive integer
-            if obj.isValidId( id_in)
-                % Store as an integer
-                obj.id = int8( id_in);
-            else
-                error("Invalid id input");
-            end
-        end
     end
     
-    methods (Abstract = false, Static = true)
-        % Function that checks the validity of an id
+    methods (Abstract = false, Static = true)        
         function isvalid = isValidId( id_in)
+            %ISVALIDID Checks the validity of an `id'
+            
             % Check if it's a scalar (don't want an array or matrix)
             isvalid = isscalar( id_in);
             % Check that it's a real number (not complex or nan, etc)
@@ -129,10 +162,12 @@ classdef BaseNode < handle
             isvalid = isvalid && ( floor( id_in) == id_in);
         end
     end
+    
     methods (Abstract = true, Static = true)
         % Static methods can be accessed without instantiating an object. These
         % can be used to access the node type and degrees of freedom (properties
-        % that are not specific to any implementation)
+        % that are specific to the implemented class but not a function of the
+        % instance of the implemented class)
         
         % Incrementing the values of the nodes. It updates the internal value by
         % doing value = oplus( value, xi). E.g., for a LI-SE2: oplus(X, xi) = X
@@ -149,12 +184,12 @@ classdef BaseNode < handle
         bool = isValidIncrement( increment);
     end
     
-    properties (Abstract = true, Constant = true)
-        %   The m_* prefix indicates that it's a 'member' variable
+    properties (Abstract = true, Constant = true)        
         
         % static const string: Node type (e.g., "NodeSE2"). I'll use the
         % convention of setting type to the class name.
-        % Therefore, in the inherited classes, simply use 'type = mfilename;'
+        % In the inherited classes, simply use 
+        %   'type = mfilename;'
         type;
         
         % static const int: Dimension of the space the robot operatoes on. For
@@ -166,12 +201,8 @@ classdef BaseNode < handle
         dof;
     end
     
-    properties (SetAccess = protected)
-        % NodeType: This is where the variable is stored (e.g., X_k pose). This
-        % will depend on the type of variable stored.
-        % Note that this is updated and set using MATLAB's getter and setter
-        % functions. 
-        % Default value is set to NaN in order to know if it was instantiated.
+    properties (SetAccess = protected)        
+        % Default value is set to NaN in order to know if it was initialized.
         value = nan;
         
         % Node Id
@@ -186,6 +217,9 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %   Explanation
+%       The constructor can take parameters of type name-value paris. This is
+%       different than simply 'optional'.
+%
 %       Types of properties
 %       the 'type' and 'dim' properties are set to constant
 %       because they shouldn't change for the implemented class. They are set to
