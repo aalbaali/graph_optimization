@@ -19,9 +19,14 @@ classdef EdgeR2R2 < BaseEdge
         function computeError( obj)
             %COMPUTEERROR Updates the weighted error value and returns the
             %value.
+            
+            % Check if poses are valid
+            if ~obj.valid_end_nodes( 1) || ~obj.valid_end_nodes( 2)
+                error("Invalid end_nodes. May need initialization");
+            end
             % First pose
-            X1 = obj.endNodes{1}.value;
-            X2 = obj.endNodes{2}.value;
+            X1 = obj.end_nodes{1}.value;
+            X2 = obj.end_nodes{2}.value;
             
             % Unweighted error
             obj.err_val = X2 - obj.params.A * X1 - obj.params.B * obj.meas;
@@ -48,7 +53,8 @@ classdef EdgeR2R2 < BaseEdge
         % Random varaibles covariance validator
         function isvalid = isValidCov( obj, mat_in)
             % First check size
-            isvalid = all( size( mat_in) == [obj.numRVs, obj.numRVs]);
+            isvalid = true;
+%             isvalid = all( size( mat_in) == [obj.numRVs, obj.numRVs]);
             % Check if matrix is symmetric
             isvalid = isvalid & norm( mat_in - mat_in') <= 1e-5;
             % Check eigenvalues (this might be an expensive step that I might

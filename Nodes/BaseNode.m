@@ -19,7 +19,7 @@ classdef BaseNode < handle
         %   The constructor can take multiple optional/parameters arguments. To
         %   use the constructore, pass in a value or name-value pair depending
         %   on the type of argument (if it's `optional', then do not specify
-        %   name, if it's `parameter' then specify name-pair). 
+        %   name-value pair, if it's `parameter' then specify name-value pair). 
         %
         %   In the constructor of the implementation class, call the BaseNode
         %   constructor using
