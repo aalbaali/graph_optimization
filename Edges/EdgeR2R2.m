@@ -9,8 +9,8 @@ classdef EdgeR2R2 < BaseEdge
     
     methods
         % Constructor
-        function obj = EdgeR2R2()
-            obj = obj@BaseEdge();
+        function obj = EdgeR2R2( varargin)
+            obj = obj@BaseEdge( varargin{:});
         end
         
         % Functions to set the matrices of the linear process model        

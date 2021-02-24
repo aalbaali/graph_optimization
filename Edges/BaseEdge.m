@@ -13,8 +13,38 @@ classdef (Abstract) BaseEdge < handle
     
     methods 
         % Constructor. Add input paraser to parse params.
-        function obj = BaseEdge( varargin)
-            obj.endNodes = cell(1, obj.numEndNodes);
+        function obj = BaseEdge( varargin)            
+            % (optional) @params[in] 'params' : struct of params needed for the Edge
+            % implementation.
+            % (optional) @params[in] 'id' : edgeId
+            % (optional) @params[in] 'endNodes' : Cell array of endNodes.
+            
+            % Default values
+            defaultParams   = struct();
+            defaultId       = nan();
+            defaultEndNodes = cell(1, obj.numEndNodes);
+            
+            % No validator for the parameters
+            validParams = @(params) true;
+            validId     = @(id) obj.isValidId( id) || ...
+                ( isscalar( id) && isnan( id));
+            validEndNodes = @(endNodesCell) length( endNodesCell) == ...
+                obj.numEndNodes;
+            
+            % Input paraser
+            p = inputParser;
+            
+            addOptional( p, 'params', defaultParams, validParams);
+            addOptional( p, 'id', defaultId, validId);
+            addOptional( p, 'endNodes', defaultEndNodes, validEndNodes);
+            
+            % Parse input
+            parse( p, varargin{:});
+            
+            % Store objects
+            obj.params   = p.Results.params;
+            obj.id       = p.Results.id;
+            obj.endNodes = p.Results.endNodes;
         end
         
         % # measurement setter and getter
