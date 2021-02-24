@@ -24,19 +24,26 @@ classdef BaseNode < handle
         function obj = BaseNode( varargin)                     
             % @params[in] 'value': (optional) initial value of the node. If not
             % specified, it'll be set to nan.
+            % @params[in] 'id' : positive real scalar. 
             defaultValue = nan;
+            defaultId    = nan;
             
             % Input parser
             p = inputParser;
             % A scalar nan is a valid value (implies that it's uninitialized).
             validValue = @(v) ( isscalar(v) && isnan(v)) || obj.isValidValue( v);
+            validId    = @(id) obj.isValidId( id) || ( isscalar( id) && isnan( id));
             
             % Optional
             addOptional( p, 'value', defaultValue, validValue);            
+            addOptional( p, 'id', defaultId, validId);
+            
             % Parse 
             parse(p, varargin{:});
+            
             % Store results
             obj.value = p.Results.value;
+            obj.id    = p.Results.id;
         end
         
         % Value setter. Verify that the value is a valid element.
@@ -94,8 +101,7 @@ classdef BaseNode < handle
         % Set ID
         function setId( obj, id_in)
             % @params[in] id: real positive integer
-            if isscalar( id_in) && isreal( id_in) && id_in > 0 && ...
-                    floor( id_in) == id_in
+            if obj.isValidId( id_in)
                 % Store as an integer
                 obj.id = int8( id_in);
             else
@@ -104,6 +110,20 @@ classdef BaseNode < handle
         end
     end
     
+    methods (Abstract = false, Static = true)
+        % Function that checks the validity of an id
+        function isvalid = isValidId( id_in)
+            % Check if it's a scalar (don't want an array or matrix)
+            isvalid = isscalar( id_in);
+            % Check that it's a real number (not complex or nan, etc)
+            isvalid = isvalid && isreal( id_in);
+            % Ensure that it's nonnegative
+            isvalid = isvalid && id_in >= 0;
+            % Ensure that it's a numeric integer (even though it could be stored
+            % as a double)
+            isvalid = isvalid && ( floor( id_in) == id_in);
+        end
+    end
     methods (Abstract = true, Static = true)
         % Static methods can be accessed without instantiating an object. These
         % can be used to access the node type and degrees of freedom (properties
