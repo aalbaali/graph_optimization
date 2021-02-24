@@ -4,6 +4,10 @@
 %   Amro Al Baali
 %   23-Feb-2021
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Addpaths
+addpath( 'Nodes\');
+addpath( 'Edges\');
+
 clear all;
 close all;
 
@@ -41,8 +45,8 @@ edge_x1x2.set_cov_mat( Sigma);
 % Set the values of the nodes (they're passed by reference so they'll update
 % inside the edges). But I wouldn't recommend updating the values using such
 % method.
-X1.value = [0; 0];
-X2.value = [1; 2];
+X1.setValue( [0; 0]);
+X2.setValue( [1; 2]);
 
 % Compute the error value and the weighted error
 err_val = edge_x1x2.err_val;

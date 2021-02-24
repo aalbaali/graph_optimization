@@ -12,8 +12,8 @@ classdef (Abstract) BaseEdge < handle
     %BASENODE Necessary functions and variables to implement a node class
     
     methods 
-        % Constructor
-        function obj = BaseEdge(obj)
+        % Constructor. Add input paraser to parse params.
+        function obj = BaseEdge( varargin)
             obj.endNodes = cell(1, obj.numEndNodes);
         end
         
@@ -205,6 +205,45 @@ classdef (Abstract) BaseEdge < handle
             end
         end
         
+        % A function that sets the endNodes cell array
+        function setEndNodes(obj, varargin)
+            % varargin should be of length equal to numEndNodes. If a specific
+            % node is to be set, then use `setEndNode'
+            if length( varargin) ~= obj.numEndNodes
+                error("Number of input arguments is invalid");
+            end
+            for lv1 = 1 : obj.numEndNodes
+                obj.setEndNode( lv1, varargin{lv1});
+            end
+        end
+        
+        % A function that sets a single endNode
+        function setEndNode( obj, num, node)
+            % @params[in] num : The NUMBER (positive int) of the node to be
+            % added (the order from the cell array). E.g., num = 2 indicates
+            % that we want to set the second node.
+            % @params[in] node : Node struct. A reference to the node to be
+            % added.
+            
+            % Check validity of the number
+            if ~( isscalar( num) && isreal( num) && num > 0 ...
+                && num <= obj.numEndNodes)
+                error("Invalid number");
+            end
+            
+            % Check if node is valid
+            if ~( strcmp( node.type, obj.endNodeTypes( num)))
+                % Invalid type
+                error("Invalid node type. It should be of type %s", ...
+                    obj.endNodeTypes( num));
+            end
+            obj.endNodes{ num} = node;            
+        end
+        
+        % params setter
+        function setParams( obj, params_in)
+            obj.params = params_in;
+        end
     end
     
     
@@ -232,6 +271,12 @@ classdef (Abstract) BaseEdge < handle
             %       sqrt_mat' * sqrt_mat == inf_mat
             [V, D] = eig( inf_mat);
             sqrt_mat = sqrt( D) * V';
+        end
+        
+        % A function that checks whether an ID is valid. It uses the BaseNode
+        % static method.
+        function isvalid = isValidId( id_in)
+            isvalid = BaseNode.isValidId( id_in);
         end
     end
     properties (Abstract = true, Constant = true)
@@ -305,10 +350,17 @@ classdef (Abstract) BaseEdge < handle
         m_err_cov_mat_up_to_date    = false;
         m_err_inf_mat_up_to_date    = false;
         m_err_sqrt_mat_up_to_date   = false;
+        
+        % Parameters. A struct of parameters that can be used by the
+        % implementation.
+        params = struct();
+        
+        % Edge id
+        id = nan;        
     end
     
     properties      
-        % Instances of the end nodes!        
+        % Instances of the end nodes. They should be REFERENCES to the nodes.
         endNodes = nan;
         
         % Measurements realization (expected value)

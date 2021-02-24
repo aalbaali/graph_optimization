@@ -34,20 +34,6 @@ classdef EdgeR2R2 < BaseEdge
             end
             obj.L = L_in;
         end
-        
-        function setEndNodes(obj, varargin)
-            % varargin should be of length equal to numEndNodes
-            if length( varargin) ~= obj.numEndNodes
-                warning("Number of input arguments is invalid");
-            end
-            for lv1 = 1 : obj.numEndNodes
-                if ~strcmp( varargin{lv1}.type, obj.endNodeTypes( lv1))
-                    error("Node is of wrong type");
-                else
-                    obj.endNodes{ lv1} = varargin{ lv1};
-                end
-            end
-        end
     end
     
     methods (Static = true)
