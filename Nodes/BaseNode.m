@@ -35,6 +35,9 @@ classdef BaseNode < handle
             %   Positive real scalar. If specified, it MUST be passed in using
             %   name-value pairs. E.g., ('id', 5).
             
+            % Set UUID
+            obj.UUID = java.util.UUID.randomUUID;
+            
             % Default values
             %   A `value' of nan implies it's not initialized.
             default_value = nan;
@@ -213,9 +216,9 @@ classdef BaseNode < handle
         bool = isValidIncrement( increment);
     end
     
-    properties (Abstract = false, Constant = true)
+    properties (Abstract = false, SetAccess = immutable)
         % Universally unique identifier
-        uuid = java.util.UUID.randomUUID;
+        UUID;
     end
     
     properties (Abstract = true, Constant = true)        

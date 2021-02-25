@@ -12,9 +12,14 @@ addpath('FactorGraph\');
 fg = FactorGraph();
 
 % Add a Pose node
-fg.addVariableNode( NodeR2( [1; 2]), "Pose");
+fg.addVariableNode( NodeR2( [1; 2]), "P");
 % Add another pose
-fg.addVariableNode( NodeR2( [5; 3]), "Pose");
+fg.addVariableNode( NodeR2( [5; 3]), "P");
 
 % Add a landmark node
-fg.addVariableNode( NodeR2( [0; 0]), "Landmarks");
+fg.addVariableNode( NodeR2( [0; 0]), "L");
+
+% Add edges between variables
+fg.addFactorNode( FactorR2R2(), "F", 'end_nodes_names', ["P_1", "P_2"]);
+fg.addFactorNode( FactorR2R2(), "F", 'end_nodes_names', ["P_1", "L_1"]);
+% fg.addFactorNode( FactorR2R2, "F", 'end_nodes_names', ["P_2", "L_1"]);

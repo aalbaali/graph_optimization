@@ -10,11 +10,11 @@ classdef FactorGraph < handle
             obj.G = graph;
         end
         
-        function obj = addVariableNode( obj, node, name)
+        function obj = addVariableNode( obj, variable_node, name)
             %ADDVARIABLENODE Adds a variable node to the graph. Additional
             %arguments may be specified. 
-            %@param[in][required] node
-            %   Custom node type.
+            %@param[in][required] variable_node
+            %   Instance  of a variable node class derived from BaseNode.
             %@params[in][required] 'name' : 
             %   This is a node name. It's a required parameter but can be
             %   specified inside node. 
@@ -31,16 +31,150 @@ classdef FactorGraph < handle
             addRequired( p, 'node', isValidNode);
             addRequired( p, 'name', isValidName);
             % Parse
-            parse( p, node, name);
+            parse( p, variable_node, name);
             
-            node = p.Results.node;
+            variable_node = p.Results.node;
             
             if isstring( p.Results.node.name) 
                 % Node has a name.
                 % Check if node already exists in the graph
-                if obj.G.numnodes > 0 && findnode( obj.G, p.Results.node.name)
-                    error("The same node with name '%s' already exists in the graph", ...
+                if obj.findnodeUUID( p.Results.node.UUID)
+                    warning("The same node with name '%s' already exists in the graph", ...
                         p.Results.node.name);
+                    return;
+                end
+%                 if ~strcmp( p.Results.node.name, ...
+%                     p.Results.name)
+%                     warning(['Convlict between "name" and',...
+%                         '"node.name". The "node.name" will be overwritten by "name"']);
+% 
+%                     % Update name in the provided node
+%                     variable_node.setName( name);
+%                 end
+            end
+            
+            % Get the node table
+            node_table = obj.constructNodeTable( name, variable_node, 'variable');
+            % Add node to the graph
+            obj.G = addnode( obj.G, node_table);
+        end
+        
+        function idx = findnode( obj, node_name)
+            %NODEEXISTS checks if a node with name `node_name' exists in the
+            %graph. Returns the index of the node if the node exists. Otherwise,
+            %it returns 0.
+            % 
+            % @params[in] node_name : string
+            %   node_name
+            
+            % If number of nodes equal zero, then the index doesn't exist.
+            if obj.G.numnodes == 0 
+                idx = 0;
+                return;
+            else
+                idx = findnode( obj.G, node_name);
+            end
+        end
+        
+        function idx = findnodeUUID( obj, UUID)
+            % Find index of a node using UUID
+            
+            idx = find( arrayfun( @(kk) obj.G.Nodes.UUID( kk) == UUID, 1 : ...
+                obj.G.numnodes));
+            if isempty( idx)
+                idx = 0;
+            end
+        end
+        
+        function obj = addFactorNode( obj, factor_node, varargin)
+            % Add a factor node to the graph. Since factor graphs should be
+            % bipartite graphs, then there will be edges between factor nodes
+            % and edge nodes. This method will add the necessary edges.
+            %
+            % @param[in][required] factor_node
+            %   Instance of a factor node class derived from BaseFactor class.
+            % @params[in][required] 'name' : 
+            %   This is a factor_node name. It's a required parameter but can be
+            %   specified inside node.
+            % @params[in][parameter] 'end_nodes'
+            %   Variable nodes linked/attached to the factor node. They'll be
+            %   created if they don't exist already
+            
+            % Validators
+            %   A node is a valid node if it's an instance of a class derived
+            %   from BaseFactor
+            isValidNode = @(node) any( strcmp( superclasses( node), "BaseFactor"));
+            % Now check for name arguments
+            isValidName = @(name) isstring( name) || ischar( name);
+            % Optional parameter: end_node types match the factor node
+            isValidEndNode = @(end_nodes) all( arrayfun(@(kk) strcmp( ...
+                factor_node.endNodeTypes( kk), end_nodes{ kk}.type), ...
+                1 : length( end_nodes)));
+            % EndNodeNames
+            isValidEndNodeNames = @(end_node_names) length( end_node_names) ...
+                == factor_node.numEndNodes && all( isstring( end_node_names));
+            
+            % Default vaue is whatever is in factor_node.end_nodes (even if it's
+            % empty).
+            defaultEndNode = factor_node.end_nodes;
+            defaultEndNodeNames = [];
+            
+            % Add node first, then we check for 'name'.
+            p = inputParser;
+            addRequired ( p, 'node', isValidNode);
+            addRequired ( p, 'name', isValidName);
+            addParameter( p, 'end_nodes', defaultEndNode, isValidEndNode);
+            addParameter( p, 'end_nodes_names', defaultEndNodeNames, isValidEndNodeNames);
+            % Parse            
+            parse( p, factor_node, varargin{:});
+            
+            factor_node = p.Results.node;
+            name        = p.Results.name;
+            end_nodes_in   = p.Results.end_nodes;
+            end_node_names = p.Results.end_nodes_names;
+            
+            % Compare end_nodes with the end_nodes from the factor_node. 
+            if any( cellfun( @isempty, end_nodes_in))
+                % Check the end_node names
+                if ~isempty( end_node_names)
+                    % Fill in the end_nodes using the end_node_names string
+                    % array
+                    for lv1 = 1 : factor_node.numEndNodes
+                        % Find end node
+                        idx = obj.findnode( end_node_names( lv1));
+                        end_node_lv1 = obj.G.Nodes.CellNodeObject{ idx};
+                        factor_node.setEndNode( lv1, end_node_lv1);
+                    end
+                end
+            else
+                % Check for every element of factor_node. Store `end_node_in'
+                % only if `factor_node.end_node{kk}' is nan or they're both the
+                % same (check the UUID).
+                for kk = 1 : factor_node.numEndNodes
+                    if isempty( factor_node.end_nodes{ kk})
+                        factor_node.setEndNode( kk, end_nodes_in{ kk});
+                    elseif factor_node.end_nodes{ kk}.uuid ...
+                            ~= end_nodes_in{ kk}.uuid
+                        % Output error if both UUIDs don't match
+                        error("Conflict in end_nodes");
+                    end
+                    
+                    % For each end_node, check if needs to be added to graph                    
+                    if ~obj.findnodeUUID( end_nodes_in{ kk}.UUID)
+                        warning('Adding node to graph');
+
+                        obj.addVariableNode( end_nodes_in{ kk}, "P");
+                    end                    
+                end
+            end
+            
+            if isstring( p.Results.node.name) 
+                % Node has a name.
+                % Check if node already exists in the graph
+                if obj.findnode( p.Results.node.name)
+                    warning("The same node with name '%s' already exists in the graph", ...
+                        p.Results.node.name);
+                    return;
                 end
                 if ~strcmp( p.Results.node.name, ...
                     p.Results.name)
@@ -48,17 +182,38 @@ classdef FactorGraph < handle
                         'in the node. The node name will be overwritten']);
 
                     % Update name in the provided node
-                    node.setName( name);
+                    factor_node.setName( name);
                 end
             end
             
             % Get the node table
-            node_table = obj.constructNodeTable( name, node, 'variable');
+            node_table = obj.constructNodeTable( name, factor_node, 'factor');
             % Add node to the graph
             obj.G = addnode( obj.G, node_table);
+            
+            % Add edges to the graph
+            obj.addEdges( factor_node);
         end
         
-        function obj = addFactorNode()
+        function obj = addEdges( obj, factor_node)
+            %ADDEDGES Takes the end edges from a factor node and does the
+            %following:
+            %   1. adds the nodes from end_edges if not already in the graph;
+            %   2. adds the edges between the variable_nodes and the factor
+            %   nodes.
+            
+            % End nodes
+            end_nodes = factor_node.end_nodes;
+            % Go over each end_node and add an edge.
+            for lv1 = 1 : factor_node.numEndNodes
+                % Create table
+                tab = table( { convertStringsToChars( factor_node.name), ...
+                    convertStringsToChars( end_nodes{ lv1}.name )}, ...
+                    factor_node.name, string( factor_node.UUID), 'VariableNames', ...
+                    {'EndNodes', 'FactorName', 'FactorUUID'});
+                % Add edge to table
+                obj.G = addedge( obj.G, tab);
+            end
         end
         
         function tab = constructNodeTable( obj, name, node, node_class)
@@ -85,6 +240,7 @@ classdef FactorGraph < handle
             %       4. 'CellNodeObject' : a cell that contains a the node
             %       object. The node object should have 'id' and 'name' that
             %       matches the graph's 'id' and 'Name'
+            %       5. 'uuid' : Universally unique identifier
                         
             % I need the node type to call the NodeClass.
             switch node_class                
@@ -96,8 +252,9 @@ classdef FactorGraph < handle
                     unique_name = strcat( name, "_", string( node_id));
 
                     tab = table( unique_name, ...
-                        node_id, "Variable", { node}, 'VariableNames', {'Name', ...
-                        'ID', 'Class', 'CellNodeObject'});
+                        node_id, "Variable", { node}, node.UUID, ...
+                        'VariableNames', {'Name', 'ID', 'Class', ...
+                        'CellNodeObject', 'UUID'});
                 
                 case 'factor'
                     % This is a factor node            
@@ -105,11 +262,12 @@ classdef FactorGraph < handle
                     node_id = obj.getFactorNodeNameIndex( name);
 
                     % Unique name with identifier
-                    unique_name = strcat( name, "_", node_id);
+                    unique_name = strcat( name, "_", string( node_id));
 
                     tab = table( unique_name, ...
-                        node_id, 'Factor', { node}, 'VariableNames', {'Name', ...
-                        'ID', 'Class', 'CellNodeObject'});
+                        node_id, "Factor", { node}, node.UUID, ...
+                        'VariableNames', {'Name', 'ID', 'Class', ...
+                        'CellNodeObject', 'UUID'});
                 
                 otherwise
                     error("Invalid node_class")
@@ -122,44 +280,7 @@ classdef FactorGraph < handle
             % Set the name to be the same as the extracted node_id.
             node.setName( unique_name);
         end
-        
-        function node_id = getFactorNodeNameIndex( obj, name)
-            %GETFACTORNODETYPEINDEX Returns the id in the array of
-            %factor node names. If the node name doesn't exist, it'll create
-            %a new node name.
-            %
-            % @params[in] name : string
-            %   Generic name of the node (e.g., "L" or "Landmark") without the
-            %   unique identifier (such as _1).
-            %
-            % @params[out] node_id : int8
-            %   Id for this node with such node name
-            
-            % Get the index of variable node type
-            idx_factor_node_name = find( strcmp( obj.factor_node_names,...
-                name));
 
-            % It the node_type doesn't exist, it'll return an empty variable.
-            if isempty( idx_factor_node_name)
-                % If index is empty then it means that no such variable node
-                % exists.
-
-                % Create node type.
-                obj.factor_node_names( length( obj.factor_node_names)...
-                    + 1) = name;
-                % Increment number of instances of this node type
-                obj.num_factor_node_names( length( obj.num_factor_node_names)...
-                    + 1) = int8( 1);
-                
-            else
-                % Increment number of nodes with the same generic name
-                obj.num_factor_node_names( idx_factor_node_name) = ...
-                    obj.num_factor_node_names( idx_factor_node_name) + 1;
-                return;
-            end
-            node_id = obj.num_factor_node_names( idx_factor_node_name);
-        end
-        
         function node_id = getVariableNodeNameIndex( obj, name)
             %GETVARIABLENODETYPEINDEX Returns the index in the array of
             %variable node names. If the node name doesn't exist, it'll create
@@ -171,11 +292,7 @@ classdef FactorGraph < handle
             %
             % @params[out] node_id : int8
             %   Id for this node with such node name
-            
-%             % Get the index of variable node type
-%             idx_variable_node_name = find( strcmp( obj.variable_node_names,...
-%                 name));
-%             
+
             idx_var_node_name = find( strcmp( [obj.variable_node_structs.name],...
                 name));
 
@@ -197,37 +314,39 @@ classdef FactorGraph < handle
             end
         end
         
-%         function idx = getVariableNodeTypeIndex( obj, node_type)
-%             %GETVARIABLENODETYPEINDEX Returns the index in the array of
-%             %variable node types. If the node type doesn't exist, it'll create
-%             %a new node type.
-%             %
-%             % @params[in] node_type : string
-%             %
-%             % @params[out] idx : int8
-%             %   Location in `obj.variable_node_types'.
-%             
-%             % Get the index of variable node type
-%             idx_variable_node_type = find( strcmp( obj.variable_node_types,...
-%                 node_type));
-% 
-%             % It the node_type doesn't exist, it'll return an empty variable.
-%             if isempty( idx_variable_node_type)
-%                 % If index is empty then it means that no such variable node
-%                 % exists.
-% 
-%                 % Create node type.
-%                 obj.variable_node_types( length( obj.variable_node_types)...
-%                     + 1) = node_type;
-%                 % Increment number of instances of this node type
-%                 obj.num_variable_node_types( length( obj.num_variable_node_types)...
-%                     + 1) = int8( 1);
-%                 idx = length( obj.num_variable_node_types);
-%             else
-%                 idx = idx_variable_node_type;
-%                 return;
-%             end
-%         end
+        function node_id = getFactorNodeNameIndex( obj, name)
+            %GETFACTORNODETYPEINDEX Returns the index in the array of
+            %factor node names. If the node name doesn't exist, it'll create
+            %a new node name.
+            %
+            % @params[in] name : string
+            %   Generic name of the node (e.g., "F" or "Factor") without the
+            %   unique identifier (e.g., _1).
+            %
+            % @params[out] node_id : int8
+            %   Id for this node with such node name
+
+            idx_fact_node_name = find( strcmp( [obj.factor_node_structs.name],...
+                name));
+
+            % It the node_type doesn't exist, it'll return an empty variable.
+            if isempty( idx_fact_node_name)
+                % If index is empty then it means that no such variable node
+                % exists.
+
+                % Create node type.
+                obj.factor_node_structs( length( obj.factor_node_structs) ...
+                    + 1) = struct( 'name', name, 'num', int8( 1));
+
+                node_id = int8( 1);
+            else
+                node_id = obj.factor_node_structs( ...
+                    idx_fact_node_name).num + int8( 1);
+                obj.factor_node_structs( idx_fact_node_name).num = ...
+                    node_id;                
+            end
+        end
+        
     end
     
     properties (SetAccess = protected)
@@ -239,7 +358,8 @@ classdef FactorGraph < handle
         %       1. 'name' : string
         %       2. 'num'  : number of variable nodes with the same generic name.
         variable_node_structs = struct( 'name', {}, 'num', []);
-        
+        % Same struct array but for factor nodes
+        factor_node_structs = struct( 'name', {}, 'num', []);
     end
 end
 

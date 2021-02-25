@@ -33,6 +33,8 @@ classdef (Abstract) BaseFactor < handle
             %   Measurement (random variables) covariance matrix. Not to be
             %   confused with the covariance on the error function.
             
+            % Set UUID
+            obj.UUID = java.util.UUID.randomUUID;
             % Initialize the end nodes to empty cell array of the appropriate
             % size
             obj.end_nodes = cell( 1, obj.numEndNodes);
@@ -277,7 +279,7 @@ classdef (Abstract) BaseFactor < handle
             obj.m_rvs_2ndMoments_up_to_date = false;
         end
         
-        function setEndNodes(obj, varargin)
+        function setEndNodes( obj, varargin)
             % This sets the end_nodes cell array. 
             %   Note that the end nodes should be passed by reference.
             % varargin should be of length equal to numEndNodes. If a specific
@@ -306,10 +308,9 @@ classdef (Abstract) BaseFactor < handle
                 error("Invalid number");
             end
             
-            % Check if node is an empty variable. In such case, just fill an
+            % Check if node is an empty variable. In such case, just keep it an
             % empty cell.
             if isempty( node)
-                obj.end_nodes{ num} = nan;
                 return;
             end
             % Check if node is valid
@@ -486,9 +487,9 @@ classdef (Abstract) BaseFactor < handle
             out = isscalar( arg) && isnan( arg);
         end
     end
-    properties (Abstract = false, Constant = true)
+    properties (Abstract = false, SetAccess = immutable)
         % Universally unique identifier
-        uuid = java.util.UUID.randomUUID;
+        UUID;
     end
     properties (Abstract = true, Constant = true)
         %   The m_* prefix indicates that it's a 'member' variable
