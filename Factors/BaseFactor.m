@@ -8,7 +8,7 @@
 %   Change log
 %   --------------------------------------------------------------------------
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-classdef (Abstract) BaseFactor < handle
+classdef (Abstract) BaseFactor < handle & matlab.mixin.Copyable
     %BaseFactor Necessary functions and variables to implement a factor class
     
     methods         
@@ -386,11 +386,11 @@ classdef (Abstract) BaseFactor < handle
         % Get error sqrt information matrix
         function val = get.err_sqrt_infm( obj)
             if obj.isScalarNan( obj.err_sqrt_infm)
-            if ~obj.m_err_2ndMoments_up_to_date
-                % Update matrices
-                obj.updateErrCov();
-            end
-                warning("Error sqrt information matrix not initialized");
+                if ~obj.m_err_2ndMoments_up_to_date
+                    % Update matrices
+                    obj.updateErrCov();
+                end
+%                 warning("Error sqrt information matrix not initialized");
             end
             val = obj.err_sqrt_infm;
         end
@@ -412,6 +412,21 @@ classdef (Abstract) BaseFactor < handle
             % Update error covariances
             obj.updateErrCov();
             val = obj.err_sqrt_infm * obj.err_val;
+        end
+        
+        function wJ_cell = get.werr_Jacobians( obj)
+            % Unweighted error Jacobians cell array
+            J_cell = obj.getErrJacobiansNodes();
+            
+            % Get a copy sqrt_information matrix because err_sqrt_infm checks
+            % whether it is up to date or not. I think it'll (very slightly)
+            % improve performance over calling.
+            err_sqrt_infm = obj.err_sqrt_infm();
+            
+            % Build a cell array of the same size as the unweighted error
+            % Jacobian.
+            wJ_cell = cellfun( @(J) err_sqrt_infm * J, J_cell, 'UniformOutput', ...
+                false);
         end
         
         % Get chi-squared distance
@@ -531,6 +546,9 @@ classdef (Abstract) BaseFactor < handle
                 
         % Weighted error
         werr_val = nan;
+        
+        % Weighted error function Jacobian w.r.t. states
+        werr_Jacobians = [];
         
         % Chi squared value
         chi2 = nan;

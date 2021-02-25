@@ -1,4 +1,4 @@
-classdef FactorGraph < handle
+classdef FactorGraph < handle & matlab.mixin.Copyable
     % FactorGraph    Summary
     % Class that maintains a factor graph for inference. Uses BaseNode and
     % BaseEdge classes.

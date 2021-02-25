@@ -78,7 +78,7 @@ for kk = 1 : 2
 end
 % Finally, add a loop closure factor
 % System matrices
-params_lc = struct( 'A', eye( 2), 'B', eye( 2), 'L', eye( 3));
+params_lc = struct( 'A', eye( 2), 'B', eye( 2), 'L', [zeros(2,1), eye(2)]);
 factor_lc = FactorR2R2( 'params', params_lc, 'cov', 1e-2 * eye( 3));
 % Set end nodes
 factor_lc.setEndNodes( fg.node("X_1"), fg.node("X_3"));

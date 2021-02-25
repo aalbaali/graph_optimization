@@ -33,8 +33,10 @@ classdef FactorR2R2 < BaseFactor
         end
         
         % A function that computes the error Jacobians w.r.t. states/nodes
-        function H = getErrJacobiansNodes( obj)
-            H = obj.params.A;
+        function J_cell = getErrJacobiansNodes( obj)
+            %GETERRJACOBIANSNODES gets the Jacobian of the (unweighted) error
+            %function w.r.t. nodes. Note that the order matters!
+            J_cell = { eye( 2), -obj.params.A};
         end
         % A function that computes the error Jacobians w.r.t. the random
         % variables

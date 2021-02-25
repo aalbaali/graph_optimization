@@ -9,7 +9,7 @@
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-classdef BaseNode < handle
+classdef BaseNode < handle & matlab.mixin.Copyable
     %BASENODE Necessary functions and variables to implement a node class
     % This class is a handle class which allows internal properties to be
     % modified
