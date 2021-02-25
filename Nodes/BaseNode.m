@@ -124,6 +124,22 @@ classdef BaseNode < handle
             end
         end
         
+        function obj = setCov( obj, cov)
+            %SETCOV sets the covariance on the value of the object. 
+            %
+            
+            % I should check for positive semi-definiteness but I'm not aware of
+            % a cheap way to do it. Checking for positive definiteness might be
+            % too restrictive.
+            isValidCov = @( cov) issymmetric( cov) && length( cov) == obj.dof;            
+            
+            p = inputParser;            
+            addRequired( p, 'cov', isValidCov);
+            parse( p, cov);
+            
+            obj.cov = cov;
+        end
+        
         function obj = setName( obj, name_in)
             %SETNAME Sets the name of the node
             % @params[in] name_in: string.
@@ -241,6 +257,9 @@ classdef BaseNode < handle
     properties (SetAccess = protected)        
         % Default value is set to NaN in order to know if it was initialized.
         value = nan;
+        
+        % Covariance on the estimate. Initialized to an empty variable.
+        cov   = [];
         
         % Node Id
         id = nan;

@@ -321,19 +321,12 @@ classdef FactorGraph < handle
         function node_object = node( obj, name, varargin)
             %NODE Provdes the node object. Returns an empty variable if the node
             %doesn't exist.
+            %   NODE( name) returns a node object that *exactly* matches the
+            %   name string.
             %
-            % If node with name 'name' doesn't exist, it returns an empty
-            % variable.
-            %
-            % @params[in][required] name : string 
-            %   It should match the node name (e.g., "X_1") OR the generic name
-            %   (i.e., "X"). If the generic name is provided, then an ID is
-            %   needed as a following argument.
-            %
-            % @params[in][optional] id : int
-            %   if a generic name is provided (i.e., "X"), then an ID is needed
-            %   to uniquely idenity the unique node (i.e., "X_1"). In essence,
-            %   this is just concatenating the strings!
+            %   NODE( name, id) returns a node object that matches the
+            %   concatenation [name]_id. E.g., if the provided 'name' is "X" and
+            %   id=5, then it'll find a node with name "X_5".            
             % ------------------------------------------------------------------
             % @params[out] nodeStruct : { nodeObject, []}
             %   Returns the nodeObject if found in the graph. If it doesn't
@@ -504,7 +497,4 @@ end
 % TO DO
 %   - It's VERY confusing when it comes to NAME, ID, and TYPE. Reduce confusion.
 %
-%   - Create a method that allows the user to EASILY access the nodes without
-%   the need to type strings. Think about this, how can we access the nodes in a
-%   for-loop? Perhaps use the variable id?
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
