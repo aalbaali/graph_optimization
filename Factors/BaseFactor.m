@@ -486,6 +486,10 @@ classdef (Abstract) BaseFactor < handle
             out = isscalar( arg) && isnan( arg);
         end
     end
+    properties (Abstract = false, Constant = true)
+        % Universally unique identifier
+        uuid = java.util.UUID.randomUUID;
+    end
     properties (Abstract = true, Constant = true)
         %   The m_* prefix indicates that it's a 'member' variable
         

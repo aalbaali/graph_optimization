@@ -213,6 +213,11 @@ classdef BaseNode < handle
         bool = isValidIncrement( increment);
     end
     
+    properties (Abstract = false, Constant = true)
+        % Universally unique identifier
+        uuid = java.util.UUID.randomUUID;
+    end
+    
     properties (Abstract = true, Constant = true)        
         
         % static const string: Node type (e.g., "NodeSE2"). I'll use the
