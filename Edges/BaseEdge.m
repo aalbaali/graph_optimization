@@ -61,7 +61,7 @@ classdef (Abstract) BaseEdge < handle
             
             addParameter( p, 'params', default_params, isValidParams);
             addParameter( p, 'id', default_id, isValidId);
-            addParameter( p, 'endNodes', default_end_nodes, isValidEndNodes);
+            addParameter( p, 'end_nodes', default_end_nodes, isValidEndNodes);
             addParameter( p, 'meas', default_meas, isValidMeas);
             addParameter( p, 'cov', default_covariance, isValidCov);
             
@@ -71,7 +71,7 @@ classdef (Abstract) BaseEdge < handle
             % Store objects
             obj.setParams(   p.Results.params);
             obj.setId(       p.Results.id);            
-            obj.setEndNodes( p.Results.endNodes{ :});
+            obj.setEndNodes( p.Results.end_nodes{ :});
             obj.setMeas(     p.Results.meas);
             obj.setCov(      p.Results.cov);
         end
@@ -392,7 +392,7 @@ classdef (Abstract) BaseEdge < handle
         end
         
         % Get chi-squared distance
-        function val = get.chi2_val( obj)
+        function val = get.chi2( obj)
             % Compute the weighted error and return it's inner product
             val = obj.werr_val' * obj.werr_val;
         end
@@ -506,7 +506,7 @@ classdef (Abstract) BaseEdge < handle
         werr_val = nan;
         
         % Chi squared value
-        chi2_val = nan;
+        chi2 = nan;
         
         % Square root information matrix of the ERROR function.
         err_sqrt_infm = nan;

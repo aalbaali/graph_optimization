@@ -40,6 +40,8 @@ classdef BaseNode < handle
             default_value = nan;
             %   An `id' of nan implies it's not initialized.
             default_id    = nan;
+            %   A `name' is different from `type' and can be user defined.
+            default_name  = nan;
             
             % Input parser
             p = inputParser;
@@ -50,12 +52,17 @@ classdef BaseNode < handle
             %   An `id' can either be valid id (check isValidId) or it can be a
             %   scalar nan (not array).
             isValidId    = @(id) obj.isValidId( id) || ( isscalar( id) && isnan( id));
+            %   A valid name should only be a string
+            isValidName  = @(name) isstring( name) || ischar( name);
             
             % `value' is `optional' (if passed, it MUST be the FIRST argument).
             addOptional ( p, 'value', default_value, isValidValue);            
             % `id' is `parameter' (if passed, it MUST be specified using
             % name-value pair).
             addParameter( p, 'id', default_id, isValidId);
+            % `name' is an (optional) parameter. So a name-value argument must
+            % be passed.
+            addParameter( p, 'name', default_name, isValidName);
             
             % Parse 
             parse(p, varargin{:});
@@ -63,8 +70,12 @@ classdef BaseNode < handle
             % Store results
             obj.setValue( p.Results.value);
             obj.setId( p.Results.id);
+            obj.setName( p.Results.name);
         end
-                
+
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        %   Setters
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         function obj = setValue(obj, value_in)
             %SETVALUE Checks if a value is valid and stores it in the object.            %
             % @params[in] value_in: 
@@ -110,6 +121,22 @@ classdef BaseNode < handle
             end
         end
         
+        function obj = setName( obj, name_in)
+            %SETNAME Sets the name of the node
+            % @params[in] name_in: string.
+            
+            if ~isstring( name_in) && isnan( name_in)
+                obj.name = nan;
+            elseif ischar( name_in) || isstring( name_in)
+                % Ensure that it's stored as string
+                obj.name = string( name_in);
+            else
+                error("Invalid name type");
+            end
+        end
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        %   Getters
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         function value_out = get.value(obj)
             %GET.VALUE Get the internal value.
             %   Displays a warning if the value is not initialized.
@@ -120,7 +147,9 @@ classdef BaseNode < handle
             value_out = obj.value;
         end       
         
-        
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        %   Other public functions
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         function out = increment( obj, increment)
             %INCREMENT : Increment `value' with an increment using the
             %   user-defined `oplus' method.
@@ -207,6 +236,9 @@ classdef BaseNode < handle
         
         % Node Id
         id = nan;
+        
+        % Node name. This could be defined by the user (e.g., "PoseX_1")
+        name;
     end   
     
     properties (Abstract = false, Access = protected)
