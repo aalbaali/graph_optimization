@@ -127,6 +127,10 @@ classdef (Abstract) BaseFactor < handle
                 obj.meas = nan();
                 return;
             else
+                % check if measurement is of right size
+                if length( meas_in) ~= obj.measDim
+                    error("Measurement is of wrong size");
+                end
                 obj.meas = meas_in;
             end
         end        

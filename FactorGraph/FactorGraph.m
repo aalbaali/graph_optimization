@@ -4,7 +4,9 @@ classdef FactorGraph < handle
     % BaseEdge classes.
     methods (Access = public)
         function obj = FactorGraph( varargin)
-            %FACTORGRAPH
+            %FACTORGRAPH 
+            %   @params[in][parameter] 'verb' : {0, 1}
+            %       Verbosity. Default value is 0.
             
             p = inputParser;
             
@@ -315,7 +317,62 @@ classdef FactorGraph < handle
             % Set the name to be the same as the extracted node_id.
             node.setName( unique_name);
         end
-
+        
+        function node_object = node( obj, name, varargin)
+            %NODE Provdes the node object. Returns an empty variable if the node
+            %doesn't exist.
+            %
+            % If node with name 'name' doesn't exist, it returns an empty
+            % variable.
+            %
+            % @params[in][required] name : string 
+            %   It should match the node name (e.g., "X_1") OR the generic name
+            %   (i.e., "X"). If the generic name is provided, then an ID is
+            %   needed as a following argument.
+            %
+            % @params[in][optional] id : int
+            %   if a generic name is provided (i.e., "X"), then an ID is needed
+            %   to uniquely idenity the unique node (i.e., "X_1"). In essence,
+            %   this is just concatenating the strings!
+            % ------------------------------------------------------------------
+            % @params[out] nodeStruct : { nodeObject, []}
+            %   Returns the nodeObject if found in the graph. If it doesn't
+            %   exist in the graph, then returns an empty variable.
+            
+            isValidName = @( name) isstring( name) || ischar( name);
+            isValidId   = @( id) isscalar( id) && isreal( id) && id >= 0;
+            
+            defaultId   = -1;
+            
+            p = inputParser;
+            addRequired( p, 'name', isValidName);
+            addOptional( p, 'id', defaultId, isValidId);
+            
+            parse( p, name, varargin{ :});
+            
+            name = p.Results.name;
+            id   = p.Results.id;
+            
+            % If id is provded by the user (i.e., it's not the default value of
+            % -1). Then contactenate the name with the id. 
+            if id > 0
+                name = strcat( name, "_", num2str( id));
+            end
+            
+            idx = obj.findnode( name);
+            if idx == 0                
+                obj.warn(1, sprintf( "Node with name '%s' is not available", ...
+                    name));
+                node_object = [];
+            else
+                node_object = obj.G.Nodes.CellNodeObject{ idx};
+            end
+        end
+                
+        
+    end
+    
+    methods (Access = protected)
         function node_id = getVariableNodeNameIndex( obj, name)
             %GETVARIABLENODETYPEINDEX Returns the index in the array of
             %variable node names. If the node name doesn't exist, it'll create
@@ -381,9 +438,7 @@ classdef FactorGraph < handle
                     node_id;                
             end
         end
-        
     end
-    
     methods
         function set.verbosity( obj, verb)
             obj.verbosity = verb;
@@ -445,4 +500,11 @@ end
 %       2. factor node (this contains the error function to be minimized).
 %
 %   I might need to do exception handling to manage the num_variable_node_names.
+% -----------------------------------------------------------------------------
+% TO DO
+%   - It's VERY confusing when it comes to NAME, ID, and TYPE. Reduce confusion.
+%
+%   - Create a method that allows the user to EASILY access the nodes without
+%   the need to type strings. Think about this, how can we access the nodes in a
+%   for-loop? Perhaps use the variable id?
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
