@@ -8,8 +8,8 @@
 %   Change log
 %   --------------------------------------------------------------------------
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-classdef (Abstract) BaseEdge < handle
-    %BASEEDGE Necessary functions and variables to implement an Edge class
+classdef (Abstract) BaseFactor < handle
+    %BaseFactor Necessary functions and variables to implement a factor class
     
     methods         
         %   The constructor can take multiple optional/parameters arguments. To
@@ -20,7 +20,7 @@ classdef (Abstract) BaseEdge < handle
         %   In the constructor of the implementation class, call the BaseNode
         %   constructor using
         %       obj@BaseEdge( varargin{:})  
-        function obj = BaseEdge( varargin)            
+        function obj = BaseFactor( varargin)            
             % @params[in][parameter] 'params'
             %   Struct of params needed for the implemented class
             % @params[in][parameter] 'id'
@@ -81,7 +81,7 @@ classdef (Abstract) BaseEdge < handle
         %   Setters
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         function obj = setId( obj, id_in)
-            %SETID Sets the edge id.
+            %SETID Sets the object's id.
             
             % Check if input is a scalar nan
             if obj.isScalarNan( id_in)
@@ -471,7 +471,7 @@ classdef (Abstract) BaseEdge < handle
     properties (Abstract = true, Constant = true)
         %   The m_* prefix indicates that it's a 'member' variable
         
-        % static const string: Edge type (e.g., "EdgeSE2" or "EdgeSE2R2"). I'll
+        % static const string: Factor type (e.g., "FactorSE2" or "FactorSE2R2"). I'll
         % use the convention of setting type to the class name
         type;
         
@@ -570,5 +570,12 @@ end
 %       
 %       The Nodes are passed by REFERENCE! This would allow for efficiency in
 %       implementation but caution must also be exercised.
-%   TODO
+%   ----------------------------------------------------------------------------
+%   Change log
+%       24-Feb-2021
+%           Changed the class name from BaseEdge to BaseFactor. I subsequently
+%           changed the derived classes as well.
+%   
+%           The reason for this change is that Factors should be treated as
+%           nodes, not as edges. 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

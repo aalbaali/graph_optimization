@@ -6,7 +6,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Addpaths
 addpath( 'Nodes\');
-addpath( 'Edges\');
+addpath( 'Factors\');
 
 clear all;
 close all;
@@ -18,7 +18,7 @@ L = [ B, eye( 2)];
 params = struct('A', A, 'B', B, 'L', L);
 
 % For this system, define a new constructor
-Edge = @(varargin) EdgeR2R2('params', params, varargin{:});
+Edge = @(varargin) FactorR2R2('params', params, varargin{:});
 
 % % This lambda function would REQUIRE the specification of an ID
 % Edge = @(id, varargin) EdgeR2R2('params', params, 'id', id, varargin{:});
@@ -37,7 +37,7 @@ X2 = NodeR2( [ 1; 2]);
 %   Pass in the two nodes to the constructor (optional)
 %   Pass in the measurement to the constructor (optional)
 %   Pass in the rv covariance to the constructor (optional)
-edge_1 = Edge( 'endNodes', { X1, X2}, 'meas', u, 'cov', Sigma);
+edge_1 = Edge( 'end_nodes', { X1, X2}, 'meas', u, 'cov', Sigma);
 % Alternatively, the end nodes can be set by calling 
 %   edge_1.setEndNodes( { X1, X2}); 
 % or

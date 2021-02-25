@@ -4,13 +4,13 @@
 %   Amro Al Baali
 %   23-Feb-2021
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-classdef EdgeR2R2 < BaseEdge
-    %EDGER2R2 Implementation of BaseEdge between two R^2 elements
+classdef FactorR2R2 < BaseFactor
+    %FACTORR2R2 Implementation of BaseEdge between two R^2 elements
     
     methods
         % Constructor
-        function obj = EdgeR2R2( varargin)
-            obj = obj@BaseEdge( varargin{:});
+        function obj = FactorR2R2( varargin)
+            obj = obj@BaseFactor( varargin{:});
         end
     end
     
@@ -84,3 +84,14 @@ classdef EdgeR2R2 < BaseEdge
         numRVs = 3;
     end
 end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Explanation
+%   ----------------------------------------------------------------------------
+%   Change log
+%       24-Feb-2021
+%           Changed the class name from EdgeR2R2 to FactorR2R2.
+%   
+%           The reason for this change is that Factors should be treated as
+%           nodes, not as edges. 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

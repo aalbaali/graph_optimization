@@ -1,7 +1,10 @@
 classdef FactorGraph < handle
+    % FactorGraph    Summary
+    % Class that maintains a factor graph for inference. Uses BaseNode and
+    % BaseEdge classes.
     methods (Access = public)
         function obj = FactorGraph( varargin)
-            %   Constructor
+            %FACTORGRAPH
             
             % Initialize the graph
             obj.G = graph;
@@ -231,24 +234,11 @@ classdef FactorGraph < handle
         % Graph object
         G;
         
-%         % Array of strings of the type (not names) of all the VARIABLE nodes in the graph
-%         variable_node_types = strings( 0);
-%         % Array of strings of the type (not names) of all the FACTOR nodes in the graph
-%         factor_node_types = strings( 0);
-        
         % Array of structs of the names (not types) of all the  VARIABLE nodes in the graph
         %   Each element contains two fields:
         %       1. 'name' : string
         %       2. 'num'  : number of variable nodes with the same generic name.
         variable_node_structs = struct( 'name', {}, 'num', []);
-                
-%         % Number of nodes of each type of all the VARIABLE nodes in the graph
-%         % (this should be the same size as `variable_node_types')
-%         num_variable_node_types = 0;
-%         
-%         % Number of nodes of each type of all the FACTOR nodes in the graph
-%         % (this should be the same size as `variable_node_types')
-%         num_factor_node_types = 0;
         
     end
 end
