@@ -45,6 +45,7 @@ classdef (Abstract) BaseFactor < handle
             default_end_nodes  = cell(1, obj.numEndNodes);
             default_meas       = nan();
             default_covariance = nan();
+            default_name       = nan();
             
             % No validator for the parameters
             isValidParams = @(params) true;
@@ -55,6 +56,8 @@ classdef (Abstract) BaseFactor < handle
                 || obj.isValidMeas( meas);
             isValidCov = @(cov) obj.isScalarNan( cov) ...
                 || obj.isValidCov( cov);
+            %   A valid name should only be a string
+            isValidName  = @(name) isstring( name) || ischar( name);
             
             % Input paraser
             p = inputParser;
@@ -63,23 +66,38 @@ classdef (Abstract) BaseFactor < handle
             addParameter( p, 'id', default_id, isValidId);
             addParameter( p, 'end_nodes', default_end_nodes, isValidEndNodes);
             addParameter( p, 'meas', default_meas, isValidMeas);
-            addParameter( p, 'cov', default_covariance, isValidCov);
-            
+            addParameter( p, 'cov', default_covariance, isValidCov);            
+            addParameter( p, 'name', default_name, isValidName);
             % Parse input
             parse( p, varargin{:});
             
             % Store objects
-            obj.setParams(   p.Results.params);
-            obj.setId(       p.Results.id);            
+            obj.setParams  ( p.Results.params);
+            obj.setId      ( p.Results.id);            
             obj.setEndNodes( p.Results.end_nodes{ :});
-            obj.setMeas(     p.Results.meas);
-            obj.setCov(      p.Results.cov);
+            obj.setMeas    ( p.Results.meas);
+            obj.setCov     ( p.Results.cov);
+            obj.setName    ( p.Results.name);
         end
         
         
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         %   Setters
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        function obj = setName( obj, name_in)
+            %SETNAME Sets the name of the node
+            % @params[in] name_in: string.
+            
+            if ~isstring( name_in) && isnan( name_in)
+                obj.name = nan;
+            elseif ischar( name_in) || isstring( name_in)
+                % Ensure that it's stored as string
+                obj.name = string( name_in);
+            else
+                error("Invalid name type");
+            end
+        end
+        
         function obj = setId( obj, id_in)
             %SETID Sets the object's id.
             
@@ -553,7 +571,10 @@ classdef (Abstract) BaseFactor < handle
         valid_end_nodes;
         
         % Measurements realization (expected value)
-        meas = nan;        
+        meas = nan;      
+        
+        % Node name. This could be defined by the user (e.g., "Factor_12")
+        name;
     end
 end
 
