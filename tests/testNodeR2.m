@@ -48,7 +48,7 @@ function testValueSetterAndGetter( testCase)
     node_R2 = NodeR2();
     
     exp_output = rand( 2, 1);
-    node_R2.value = exp_output;
+    node_R2.setValue( exp_output);
     
     act_output = node_R2.value;
         

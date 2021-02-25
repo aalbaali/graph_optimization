@@ -6,6 +6,13 @@
 5. Wrote a `FactorGraph` class handle that implements a factor graph. It uses nodes derived from `BaseNode` and `BaseFactor`.
 
 # To be done
+## General
 1. Write an optimization class that takes a factor graph and computes that MAP estimate.
-2. Write unit tests for each node. Try automating the unit test (for the derivatives at least).
-3. Write unit tests for the `FactorGraph` class.
+2. Write a graph plotter class. We can plot the node locations based on the actual position of the robot. Furthermore, covariance ellipses can be added!
+
+## `BaseNode` and derived classes
+1. Maybe change the name from `BaseNode` to `VariableNode` since a `BaseFactor` is also a node. The reason for such weird naming is that I recently changed the `BaseFactor` name from `BaseEdge` and decided to treat factors as nodes (as should be) rather than treating them as edges.
+2. Write unit tests for each node.
+## `BaseFactor` and derived classes
+1. Write unit tests for the `FactorGraph` class.
+2. Write unit tests for factor node. Try automating the unit test (for the derivatives at least).

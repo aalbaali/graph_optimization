@@ -6,11 +6,25 @@ classdef FactorGraph < handle
         function obj = FactorGraph( varargin)
             %FACTORGRAPH
             
+            p = inputParser;
+            
+            % Valid verbosity            
+            isValidVerb = @(verb) isscalar( verb) && isreal( verb) && verb >= 0;
+            
+            % Default verbosity
+            defaultVerb = 0;
+            
+            addParameter( p, 'verb', defaultVerb, isValidVerb);
+            
+            parse( p, varargin{ :});
+            
+            obj.verbosity = p.Results.verb;
+            
             % Initialize the graph
             obj.G = graph;
         end
         
-        function obj = addVariableNode( obj, variable_node, name)
+        function obj = addVariableNode( obj, variable_node, varargin)
             %ADDVARIABLENODE Adds a variable node to the graph. Additional
             %arguments may be specified. 
             %@param[in][required] variable_node
@@ -26,14 +40,18 @@ classdef FactorGraph < handle
             % Now check for name arguments
             isValidName = @(name) isstring( name) || ischar( name);
             
+            defaultName = "X";            
+            
             % Add node first, then we check for 'name'.
             p = inputParser;
             addRequired( p, 'node', isValidNode);
-            addRequired( p, 'name', isValidName);
+            addOptional( p, 'name', defaultName, isValidName);
+            
             % Parse
-            parse( p, variable_node, name);
+            parse( p, variable_node, varargin{ :});
             
             variable_node = p.Results.node;
+            name          = p.Results.name;
             
             if isstring( p.Results.node.name) 
                 % Node has a name.
@@ -55,8 +73,13 @@ classdef FactorGraph < handle
             
             % Get the node table
             node_table = obj.constructNodeTable( name, variable_node, 'variable');
-            % Add node to the graph
+            
+            % Add variable node to the graph
             obj.G = addnode( obj.G, node_table);
+            
+            obj.printf("Added variable node '%s' to graph\n", ...
+                variable_node.name);
+            
         end
         
         function idx = findnode( obj, node_name)
@@ -118,20 +141,21 @@ classdef FactorGraph < handle
             % empty).
             defaultEndNode = factor_node.end_nodes;
             defaultEndNodeNames = [];
+            defaultName = "F";
             
             % Add node first, then we check for 'name'.
             p = inputParser;
             addRequired ( p, 'node', isValidNode);
-            addRequired ( p, 'name', isValidName);
+            addParameter( p, 'name', defaultName, isValidName);
             addParameter( p, 'end_nodes', defaultEndNode, isValidEndNode);
-            addParameter( p, 'end_nodes_names', defaultEndNodeNames, isValidEndNodeNames);
+            addParameter( p, 'node_names', defaultEndNodeNames, isValidEndNodeNames);
             % Parse            
             parse( p, factor_node, varargin{:});
             
             factor_node = p.Results.node;
             name        = p.Results.name;
             end_nodes_in   = p.Results.end_nodes;
-            end_node_names = p.Results.end_nodes_names;
+            end_node_names = p.Results.node_names;
             
             % Compare end_nodes with the end_nodes from the factor_node. 
             if any( cellfun( @isempty, end_nodes_in))
@@ -153,30 +177,38 @@ classdef FactorGraph < handle
                 for kk = 1 : factor_node.numEndNodes
                     if isempty( factor_node.end_nodes{ kk})
                         factor_node.setEndNode( kk, end_nodes_in{ kk});
-                    elseif factor_node.end_nodes{ kk}.uuid ...
-                            ~= end_nodes_in{ kk}.uuid
+                    elseif factor_node.end_nodes{ kk}.UUID ...
+                            ~= end_nodes_in{ kk}.UUID
                         % Output error if both UUIDs don't match
                         error("Conflict in end_nodes");
                     end
                     
                     % For each end_node, check if needs to be added to graph                    
                     if ~obj.findnodeUUID( end_nodes_in{ kk}.UUID)
-                        warning('Adding node to graph');
-
-                        obj.addVariableNode( end_nodes_in{ kk}, "P");
+                        obj.addVariableNode( end_nodes_in{ kk});
+                        
+%                         % warning('Adding node to graph');
+%                         obj.printf("Added variable node '%s' to graph\n", ...
+%                             end_nodes_in{ kk}.name);
                     end                    
                 end
             end
             
-            if isstring( p.Results.node.name) 
+            % Check if factor node already exists in the graph
+            if isstring( factor_node.name) 
+                % Check if the factor node has a string.
+                
                 % Node has a name.
                 % Check if node already exists in the graph
-                if obj.findnode( p.Results.node.name)
-                    warning("The same node with name '%s' already exists in the graph", ...
-                        p.Results.node.name);
+                if obj.findnode( factor_node.name) ...
+                        || obj.findnodeUUID( factor_node.UUID)
+                    obj.warn( 0, "The same node with name '%s' already exists in the graph", ...
+                        factor_node.name);
                     return;
                 end
-                if ~strcmp( p.Results.node.name, ...
+                
+                % Compare input name with factor node name
+                if ~strcmp( factor_node.name, ...
                     p.Results.name)
                     warning(['Provided name does not match the name ',...
                         'in the node. The node name will be overwritten']);
@@ -188,8 +220,11 @@ classdef FactorGraph < handle
             
             % Get the node table
             node_table = obj.constructNodeTable( name, factor_node, 'factor');
+                        
             % Add node to the graph
             obj.G = addnode( obj.G, node_table);
+            
+            obj.printf( "Added factor node '%s' to graph\n", factor_node.name);
             
             % Add edges to the graph
             obj.addEdges( factor_node);
@@ -349,6 +384,46 @@ classdef FactorGraph < handle
         
     end
     
+    methods
+        function set.verbosity( obj, verb)
+            obj.verbosity = verb;
+        end
+    end
+    
+    
+    methods (Access = private)
+        function printf( obj, varargin)
+            % A function that prints to the console based on verbosity
+            switch obj.verbosity
+                case 0                    
+                case 1
+                    fprintf( varargin{ :});
+            end
+        end
+        
+        function warn( obj, level, message, varargin)
+            % Internal wanring message system. 
+            % @params[in] message   :   sprintf object
+            %   The message to print to the console
+            % @params[in] level     :   int8 >= 0
+            %   Level of severity. Here are the levels.
+            %       0   :   Message
+            %       1   :   Warning
+            %       2   :   Error
+            switch level
+                case 0
+                    obj.printf( message, varargin{ :});
+                case 1
+                    warning( message, varargin{ :});
+                case 2
+                    error( message, varargin{ :});
+            end
+        end
+    end
+    properties 
+        % Verbosity: 0, 1
+        verbosity = 0;
+    end
     properties (SetAccess = protected)
         % Graph object
         G;
