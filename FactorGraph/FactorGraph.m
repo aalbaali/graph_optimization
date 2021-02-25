@@ -169,30 +169,29 @@ classdef FactorGraph < handle
             % @params[out] node_id : int8
             %   Id for this node with such node name
             
-            % Get the index of variable node type
-            idx_variable_node_name = find( strcmp( obj.variable_node_names,...
+%             % Get the index of variable node type
+%             idx_variable_node_name = find( strcmp( obj.variable_node_names,...
+%                 name));
+%             
+            idx_var_node_name = find( strcmp( [obj.variable_node_structs.name],...
                 name));
 
             % It the node_type doesn't exist, it'll return an empty variable.
-            if isempty( idx_variable_node_name)
+            if isempty( idx_var_node_name)
                 % If index is empty then it means that no such variable node
                 % exists.
 
                 % Create node type.
-                obj.variable_node_names( length( obj.variable_node_names)...
-                    + 1) = name;
-                % Increment number of instances of this node type
-                obj.num_variable_node_names( length( obj.num_variable_node_names)...
-                    + 1) = int8( 1);
-                
+                obj.variable_node_structs( length( obj.variable_node_structs) ...
+                    + 1) = struct( 'name', name, 'num', int8( 1));
+
                 node_id = int8( 1);
             else
-                % Increment number of nodes with the same generic name
-                obj.num_variable_node_names( idx_variable_node_name) = ...
-                    obj.num_variable_node_names( idx_variable_node_name) + 1;                
-                node_id = obj.num_variable_node_names( idx_variable_node_name);
+                node_id = obj.variable_node_structs( ...
+                    idx_var_node_name).num + int8( 1);
+                obj.variable_node_structs( idx_var_node_name).num = ...
+                    node_id;                
             end
-            
         end
         
 %         function idx = getVariableNodeTypeIndex( obj, node_type)
@@ -237,11 +236,12 @@ classdef FactorGraph < handle
 %         % Array of strings of the type (not names) of all the FACTOR nodes in the graph
 %         factor_node_types = strings( 0);
         
-        % Array of strings of the names (not types) of all the VARIABLE nodes in the graph
-        variable_node_names = strings( 0);
-        % Array of strings of the names (not type) of all the FACTOR nodes in the graph
-        factor_node_names = strings( 0);
-        
+        % Array of structs of the names (not types) of all the  VARIABLE nodes in the graph
+        %   Each element contains two fields:
+        %       1. 'name' : string
+        %       2. 'num'  : number of variable nodes with the same generic name.
+        variable_node_structs = struct( 'name', {}, 'num', []);
+                
 %         % Number of nodes of each type of all the VARIABLE nodes in the graph
 %         % (this should be the same size as `variable_node_types')
 %         num_variable_node_types = 0;
@@ -249,15 +249,7 @@ classdef FactorGraph < handle
 %         % Number of nodes of each type of all the FACTOR nodes in the graph
 %         % (this should be the same size as `variable_node_types')
 %         num_factor_node_types = 0;
-         
         
-        % Number of nodes with the same names of all the VARIABLE nodes in the
-        % graph (this should be the same size as `variable_node_names')
-        num_variable_node_names = zeros( 1, 0);
-        
-        % Number of nodes with the same name of all the FACTOR nodes in the
-        % graph (this should be the same size as `variable_node_names')
-        num_factor_node_names = zeros( 1, 0);
     end
 end
 
