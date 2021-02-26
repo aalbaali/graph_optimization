@@ -544,26 +544,6 @@ classdef (Abstract) BaseFactor < handle & matlab.mixin.Copyable
         % static const string: Factor type (e.g., "FactorSE2" or "FactorSE2R2"). I'll
         % use the convention of setting type to the class name
         type;
-        
-        % static const int: Number of nodes attached to this edge (usually
-        % it's either 1 or 2 for SLAM problems)
-        numEndNodes;
-        
-        % static const string array of types of the end nodes. The order
-        % matters! It should match the class name (e.g., "EdgeSE2R2" is
-        % different from "EdgeR2SE2"). E.g., endNodes = {"NodeSE2", "NodeR2"};
-        % The elements can be set using class(NodeR2) or more easily "NodeR2"
-        endNodeTypes;
-        
-        % Dimension of the error function (or degrees of freedom)
-        errDim;
-        
-        % Dimension of the measurement
-        measDim;
-        
-        % Number of random variables (including the measurement if it's counted
-        % as a random variable)
-        numRVs;
     end
     
     properties (SetAccess = protected)
@@ -631,6 +611,27 @@ classdef (Abstract) BaseFactor < handle & matlab.mixin.Copyable
         
         % Node name. This could be defined by the user (e.g., "Factor_12")
         name;
+        
+        
+        % static const int: Number of nodes attached to this edge (usually
+        % it's either 1 or 2 for SLAM problems)
+        numEndNodes;
+        
+        % static const string array of types of the end nodes. The order
+        % matters! It should match the class name (e.g., "EdgeSE2R2" is
+        % different from "EdgeR2SE2"). E.g., endNodes = {"NodeSE2", "NodeR2"};
+        % The elements can be set using class(NodeR2) or more easily "NodeR2"
+        endNodeTypes;
+        
+        % Dimension of the error function (or degrees of freedom)
+        errDim;
+        
+        % Dimension of the measurement
+        measDim;
+        
+        % Number of random variables (including the measurement if it's counted
+        % as a random variable)
+        numRVs;
     end
 end
 

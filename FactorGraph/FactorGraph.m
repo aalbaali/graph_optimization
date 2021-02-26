@@ -112,6 +112,7 @@ classdef FactorGraph < handle & matlab.mixin.Copyable
         end
         
         function obj = addFactorNode( obj, factor_node, varargin)
+            % ADDFACTORNODE( factor_node)
             % Add a factor node to the graph. Since factor graphs should be
             % bipartite graphs, then there will be edges between factor nodes
             % and edge nodes. This method will add the necessary edges.
@@ -142,6 +143,7 @@ classdef FactorGraph < handle & matlab.mixin.Copyable
             % Default vaue is whatever is in factor_node.end_nodes (even if it's
             % empty).
             defaultEndNode = factor_node.end_nodes;
+            % End node names from the factor_node object.
             defaultEndNodeNames = [];
             defaultName = "F";
             
@@ -177,7 +179,8 @@ classdef FactorGraph < handle & matlab.mixin.Copyable
                 % only if `factor_node.end_node{kk}' is nan or they're both the
                 % same (check the UUID).
                 for kk = 1 : factor_node.numEndNodes
-                    if isempty( factor_node.end_nodes{ kk})
+                    if isempty( factor_node.end_nodes) ...
+                            || isempty( factor_node.end_nodes{ kk})
                         factor_node.setEndNode( kk, end_nodes_in{ kk});
                     elseif factor_node.end_nodes{ kk}.UUID ...
                             ~= end_nodes_in{ kk}.UUID

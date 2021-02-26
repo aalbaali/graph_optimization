@@ -3,6 +3,10 @@
 %
 %   The problem presented here is on a mass-spring-damper system with some
 %   exteroceptive measurements. The pose graph looks as follows
+%   
+%   *
+%   |
+%   |
 %   X1 --*-- X2 --*-- X3
 %    \              /
 %        \       /
@@ -40,13 +44,13 @@ B = [ 0; 1];
 %   Jacobian of process model w.r.t. process noise. Note that since the first
 %   element of the noise column matrix w_km1 is noise on control input u_km1,
 %   then the Jacobian of the process model w.r.t. the control noise is B.
-L = [ B, eye( 2)];
+L = [ eye( 2)];
 
 % Store in params struct
 params = struct( 'A', expm( A), 'B', B, 'L', L);
 
 % Variance on all noises (including the noise on the control input)
-Q = 1e-1 * eye( 3);
+Q = 1e-1 * eye( 2);
 
 %% Set up variable and factor node constructore.
 %   Since this is a linear system, then the system matrices (A, B, and L) are
@@ -69,6 +73,14 @@ for kk = 1 : 3
     fg.addVariableNode( Node( rand( 2, 1)));
 end
 
+% Add a prior factor
+factor_prior = FactorR2();
+factor_prior.setEndNode( 1, fg.node( "X_1"));
+factor_prior.setMeas( rand( 2, 1));
+factor_prior.setCov( eye( 2));
+fg.addFactorNode( factor_prior);
+% fg.addFactorNode( factor_prior, 'end_nodes', {fg.node("X_1")});
+
 % Add odometry factors (process model)
 for kk = 1 : 2
     % Set up random measurements
@@ -86,6 +98,8 @@ factor_lc.setEndNodes( fg.node("X_1"), fg.node("X_3"));
 % Add LC factor to graph
 fg.addFactorNode( factor_lc);
 
+% Set some measurement
+factor_lc.setMeas( rand( 1, 1));
 %% Plot factor graph.
 close all;
 h = plot(fg.G, 'EdgeAlpha',0.7, 'Marker', 'o', 'MarkerSize', 3, ...
