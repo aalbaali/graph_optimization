@@ -24,8 +24,8 @@ function initializeInternalParameters( obj)
     obj.m_info_variables = ...
         cellfun( @( name) getVarNodeObject( obj.node( name)), variable_node_names);
     % Array of Jacobian column index for each variable. The variables are in
-    % the same order as in m_info_factors
-    obj.m_idx_Jac_variables = cumsum( [ obj.m_info_variables.dof]);
+    % the same order as in m_info_variables
+    obj.updateJacobianColIndices();
     
     
     % Lambda function that returns the factor node object
@@ -60,6 +60,10 @@ function initializeInternalParameters( obj)
             obj.m_werr_Jac_blocks( lv1, idx_col) = 1;
         end
     end
+    
+    % Array of Jacobian row index for each variable. The variables are in
+    % the same order as in m_info_factors
+    obj.updateJacobianRowIndices();
     
     % Set the total number of rows and columns in the full Jacobian
     obj.m_num_rows_Jac = sum( [ obj.m_info_factors.dim]);

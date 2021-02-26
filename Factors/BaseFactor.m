@@ -430,7 +430,7 @@ classdef (Abstract) BaseFactor < handle & matlab.mixin.Copyable
             % Get a copy sqrt_information matrix because err_sqrt_infm checks
             % whether it is up to date or not. I think it'll (very slightly)
             % improve performance over calling.
-            err_sqrt_infm = obj.err_sqrt_infm(); 
+            err_sqrt_infm = obj.err_sqrt_infm; 
             
             % Build a cell array of the same size as the unweighted error
             % Jacobian.
@@ -443,7 +443,13 @@ classdef (Abstract) BaseFactor < handle & matlab.mixin.Copyable
             % Compute the weighted error and return it's inner product
             val = obj.werr_val' * obj.werr_val;
         end
-        
+
+        function node_names = getEndNodeNames( obj)
+            % GETENDNODENAMES() returns the string array of names of the nodes
+            % connected to this factor.
+            
+            node_names = cellfun( @( c) c.name, obj.end_nodes);
+        end
         
         % Update error covariance, information, and sqrt information
         function updateErrCov( obj)

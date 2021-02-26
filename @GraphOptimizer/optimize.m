@@ -4,12 +4,26 @@ function obj = optimize( obj)
     %   OPTIMIZE('linear_solver', lin_solver) specifies the linear
     %   solver.
 
+    % Check if a factor graph exists
+    if isempty( obj.factor_graph)
+        error( "Factor graph not initialized");
+    end
+    
     % Check if graph is valid
+    obj.checkFactorGraph( obj.factor_graph);
     
     % Initialize internal parameters and Jacobian (does not fill in the Jacobian
     % values).
     obj.initializeInternalParameters();
     
+    % Reorder columns
+    obj.reorderColumns();
     
-%     obj.descend();
+    %%%%%%%%%%warning('The following should be implemented in a loop');
+    
+    % Get descent direction
+    obj.descend();
+    
+    % Check if things are well (objective function decreased)
+    
 end

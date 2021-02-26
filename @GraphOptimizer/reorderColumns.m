@@ -13,5 +13,5 @@ function reorderColumns( obj)
     obj.m_info_variables = obj.m_info_variables( idx_cols);
     
     %   3. the indices of the array of Jacobian column index for each variable
-    obj.m_idx_Jac_variables = cumsum( [ obj.m_info_variables.dof]);
+    obj.updateJacobianColIndices();
 end

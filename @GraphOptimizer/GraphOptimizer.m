@@ -59,44 +59,60 @@ classdef GraphOptimizer < handle
     methods (Access = public)
         % TEMPORARILY set to public for debugging
         
-        obj = optimize( obj);
+        optimize( obj);
         
         % Initialize matrices constructs empty matrices of appropriate sizes
         initializeInternalParameters( obj);
         
         % Reorder columns
         reorderColumns( obj);
+        
         % DESCEND finds the next set of nodes (as part of the main loop)
         % that minimizes the objective function.             
         descend( obj);
         
         % Computes search direction and stores it in a private object in this
         % class instead of passing it by value.
-        computeSearchDirection();
+        computeSearchDirection( obj);
         
-        % Computes step length depending on the system used (GN, LM, etc.)
-        computeStepLength();
+        % Builds the weighted error value column matrix and the full Jacobian
+        % and stores them in private members of the class.
+        % sparse Jacobian.
+        computeWerrValueAndJacobian( obj);
         
         % Constructs a linear system to be solved. This depends on the choice of
         % the optimization scheme. E.g., GN, LM, etc.
-        constructLinearSystem();
-        
-        % Builds the Jacobian of the weighted err function and stores it in a
-        % private sparse Jacobian.
-        buildWerrJacobian();
-        
-        % Computes the weighted error and stores it in a private object.
-        computeWerror();
+        constructLinearSystem( obj);
         
         % Solves the (perturbed)linear system. This would depend on the choice
-        % of the linear solver (QR, cholesky, etc.). This should implement
-        % COLAMD.
-        solveLinearSystem();
+        % of the linear solver (QR, cholesky, etc.). This should include a flag
+        % that indicates if an element-wise COLAMD should be implemented.
+        solveLinearSystem( obj);
         
+        % Computes step length for the given search direction. For now, it'll be
+        % Armijo rule. In the future, it could be updated to Wolfe-Powell, or a
+        % better method.
+        computeStepLength( obj);
+                
         % Updates the graph object by incrementing the search direction and step
         % lengths into the innner nodes.
-        updateGraph();
+        updateGraph( obj);
         
+        function obj = updateJacobianRowIndices( obj)
+            % UPDATEJACOBIANROWINDICES() updates m_idx_Jac_rows which is the
+            % first row of the Jacobian matrix for the list of factor node
+            % variables.
+            obj.m_idx_Jac_rows = cumsum( [ obj.m_info_factors.dim]) ...
+                - [obj.m_info_factors.dim] + 1;
+        end
+        
+        function obj = updateJacobianColIndices( obj)
+            % UPDATEJACOBIANCOLINDICES() updates m_idx_Jac_cols which is the
+            % first column of the Jacobian matrix for the list of variable node
+            % variables.
+            obj.m_idx_Jac_cols = cumsum( [ obj.m_info_variables.dof]) ...
+                - [ obj.m_info_variables.dof] + 1;
+        end
         function printf( obj, varargin)
             % A function that prints to the console based on verbosity
             switch obj.verbosity
@@ -141,8 +157,12 @@ classdef GraphOptimizer < handle
         m_info_variables = struct( 'name', {}, 'dof', []);
         
         % Array of Jacobian column index for each variable. The variables are in
-        % the same order as in m_info_factors
-        m_idx_Jac_variables;
+        % the same order as in m_info_variables
+        m_idx_Jac_cols;
+        
+        % Array of Jacobian row index for each factor. The factors are in the
+        % same order as in m_info_factors
+        m_idx_Jac_rows;
         
         % Number of rows of the error Jacobian
         m_num_rows_Jac;
