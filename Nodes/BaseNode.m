@@ -35,8 +35,9 @@ classdef BaseNode < handle & matlab.mixin.Copyable
             %   Positive real scalar. If specified, it MUST be passed in using
             %   name-value pairs. E.g., ('id', 5).
             
-            % Set UUID
-            obj.UUID = obj.generateUUID();
+            % Set UUID (Note: this is an external function in the Utils/
+            % directory).
+            obj.UUID = generateUUID();
             
             % Default values
             %   A `value' of nan implies it's not initialized.
@@ -153,6 +154,15 @@ classdef BaseNode < handle & matlab.mixin.Copyable
                 error("Invalid name type");
             end
         end
+        
+        function set.UUID( obj, UUID_in)
+            % Ensures that UUID is set only once! Even by an internal function.
+            if isempty( obj.UUID)
+                obj.UUID = UUID_in;
+            else
+                error("UUID already defined to %s", obj.UUID);
+            end
+        end
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         %   Getters
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -193,15 +203,6 @@ classdef BaseNode < handle & matlab.mixin.Copyable
             obj.increment( increment);
             out = obj.value;
         end
-        
-        function set.UUID( obj, UUID_in)
-            % Ensures that UUID is set only once! Even by an internal function.
-            if isempty( obj.UUID)
-                obj.UUID = UUID_in;
-            else
-                error("UUID already defined to %s", obj.UUID);
-            end
-        end
     end
     
     methods (Abstract = false, Static = true)        
@@ -217,11 +218,6 @@ classdef BaseNode < handle & matlab.mixin.Copyable
             % Ensure that it's a numeric integer (even though it could be stored
             % as a double)
             isvalid = isvalid && ( floor( id_in) == id_in);
-        end
-        
-        function uuid = generateUUID()
-            %GENERATEUUID generates a universal unique identifier.
-            uuid = java.util.UUID.randomUUID;
         end
     end
     
@@ -248,14 +244,26 @@ classdef BaseNode < handle & matlab.mixin.Copyable
     
     methods (Access = protected)
         function cp = copyElement( obj)
+            % COPYELEMENT allows for deep copies of objects of this class. This
+            % method is needed since this class ia a HANDLE class. This means
+            % that objects are passed by REFERENCE, not by value. Therefore, to
+            % copy an object, the method `copy' must be called. Example:
+            %    objectCopy = copy( originaObject);
+            % However, we need a unique UUID for each object. Therefore, in this
+            % method, a unique UUID is implemented for the new object.
+            
             % Shallow copy object (doesn't copy the UUID)
             cp = copyElement@matlab.mixin.Copyable( obj);
-            % Set UUID
-            cp.UUID = obj.generateUUID();
+            % Set UUID (Note: this is an external function in the Utils/
+            % directory).
+            cp.UUID = generateUUID();
         end
     end
     
     properties (Abstract = false, SetAccess = protected, NonCopyable)
+        % The UUID is noncopyable because it's meant to be unique for any
+        % instance of this class (or its derived classes).
+        
         % Universally unique identifier
         UUID;
     end

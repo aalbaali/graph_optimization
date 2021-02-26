@@ -33,8 +33,10 @@ classdef (Abstract) BaseFactor < handle & matlab.mixin.Copyable
             %   Measurement (random variables) covariance matrix. Not to be
             %   confused with the covariance on the error function.
             
-            % Set UUID
-            obj.UUID = java.util.UUID.randomUUID;
+            % Set UUID (Note: this is an external function in the Utils/
+            % directory).
+            obj.UUID = generateUUID();
+            
             % Initialize the end nodes to empty cell array of the appropriate
             % size
             obj.end_nodes = cell( 1, obj.numEndNodes);
@@ -81,7 +83,6 @@ classdef (Abstract) BaseFactor < handle & matlab.mixin.Copyable
             obj.setCov     ( p.Results.cov);
             obj.setName    ( p.Results.name);
         end
-        
         
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         %   Setters
@@ -296,7 +297,6 @@ classdef (Abstract) BaseFactor < handle & matlab.mixin.Copyable
             end
         end
         
-        
         function setEndNode( obj, num, node)
             % Sets a single endNode
             % @params[in] num : 
@@ -332,6 +332,15 @@ classdef (Abstract) BaseFactor < handle & matlab.mixin.Copyable
         % params setter
         function setParams( obj, params_in)
             obj.params = params_in;
+        end
+        
+        function set.UUID( obj, UUID_in)
+            % Ensures that UUID is set only once! Even by an internal function.
+            if isempty( obj.UUID)
+                obj.UUID = UUID_in;
+            else
+                error("UUID already defined to %s", obj.UUID);
+            end
         end
         
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -390,7 +399,7 @@ classdef (Abstract) BaseFactor < handle & matlab.mixin.Copyable
                     % Update matrices
                     obj.updateErrCov();
                 end
-%                 warning("Error sqrt information matrix not initialized");
+                % warning("Error sqrt information matrix not initialized");
             end
             val = obj.err_sqrt_infm;
         end
@@ -421,7 +430,7 @@ classdef (Abstract) BaseFactor < handle & matlab.mixin.Copyable
             % Get a copy sqrt_information matrix because err_sqrt_infm checks
             % whether it is up to date or not. I think it'll (very slightly)
             % improve performance over calling.
-            err_sqrt_infm = obj.err_sqrt_infm();
+            err_sqrt_infm = obj.err_sqrt_infm(); %#ignore
             
             % Build a cell array of the same size as the unweighted error
             % Jacobian.
@@ -482,7 +491,7 @@ classdef (Abstract) BaseFactor < handle & matlab.mixin.Copyable
         bool = isValidMeas( obj, meas);
         
         % RV covariance validator
-        isvalid = isValidCov( obj, mat);     
+        isvalid = isValidCov( obj, mat);
     end
     
     methods (Abstract = false, Static = true)        
@@ -506,10 +515,29 @@ classdef (Abstract) BaseFactor < handle & matlab.mixin.Copyable
             out = isscalar( arg) && isnan( arg);
         end
     end
-    properties (Abstract = false, SetAccess = immutable)
+    
+    methods (Access = protected)
+        function cp = copyElement( obj)
+            % COPYELEMENT allows for deep copies of objects of this class. This
+            % method is needed since this class ia a HANDLE class. This means
+            % that objects are passed by REFERENCE, not by value. Therefore, to
+            % copy an object, the method `copy' must be called. Example:
+            %    objectCopy = copy( originaObject);
+            % However, we need a unique UUID for each object. Therefore, in this
+            % method, a unique UUID is implemented for the new object.
+            
+            % Shallow copy object (doesn't copy the UUID)
+            cp = copyElement@matlab.mixin.Copyable( obj);
+            % Set UUID (Note: this is an external function in the Utils/
+            % directory).
+            cp.UUID = generateUUID();
+        end
+    end
+    properties (Abstract = false, SetAccess = protected, NonCopyable)
         % Universally unique identifier
         UUID;
     end
+    
     properties (Abstract = true, Constant = true)
         %   The m_* prefix indicates that it's a 'member' variable
         
@@ -617,7 +645,11 @@ end
 %       function w.r.t. random variables (i.e., noise).
 %       
 %       The Nodes are passed by REFERENCE! This would allow for efficiency in
-%       implementation but caution must also be exercised.
+%       implementation but caution must also be exercised. However, it is
+%       possible to copy objects using the `copy' command. For example,
+%           copiedObject = copy( originalObject);
+%       The copied object will also have the same *values* (not references) as
+%       the original object, but it'll have a different UUID.
 %   ----------------------------------------------------------------------------
 %   Change log
 %       24-Feb-2021
