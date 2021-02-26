@@ -168,7 +168,7 @@ classdef FactorGraph < handle & matlab.mixin.Copyable
                     for lv1 = 1 : factor_node.numEndNodes
                         % Find end node
                         idx = obj.findnode( end_node_names( lv1));
-                        end_node_lv1 = obj.G.Nodes.CellNodeObject{ idx};
+                        end_node_lv1 = obj.G.Nodes.Objects{ idx};
                         factor_node.setEndNode( lv1, end_node_lv1);
                     end
                 end
@@ -274,7 +274,7 @@ classdef FactorGraph < handle & matlab.mixin.Copyable
             %       3. 'Class' : string
             %           Classification of node type: either 'Variable', or
             %           'Factor'.
-            %       4. 'CellNodeObject' : a cell that contains a the node
+            %       4. 'Objects' : a cell that contains a the node
             %       object. The node object should have 'id' and 'name' that
             %       matches the graph's 'id' and 'Name'
             %       5. 'uuid' : Universally unique identifier
@@ -290,8 +290,7 @@ classdef FactorGraph < handle & matlab.mixin.Copyable
 
                     tab = table( unique_name, ...
                         node_id, "Variable", { node}, node.UUID, ...
-                        'VariableNames', {'Name', 'ID', 'Class', ...
-                        'CellNodeObject', 'UUID'});
+                        'VariableNames', obj.graph_table_col_names);
                 
                 case 'factor'
                     % This is a factor node            
@@ -303,8 +302,7 @@ classdef FactorGraph < handle & matlab.mixin.Copyable
 
                     tab = table( unique_name, ...
                         node_id, "Factor", { node}, node.UUID, ...
-                        'VariableNames', {'Name', 'ID', 'Class', ...
-                        'CellNodeObject', 'UUID'});
+                        'VariableNames', obj.graph_table_col_names);
                 
                 otherwise
                     error("Invalid node_class")
@@ -358,7 +356,7 @@ classdef FactorGraph < handle & matlab.mixin.Copyable
                     name));
                 node_object = [];
             else
-                node_object = obj.G.Nodes.CellNodeObject{ idx};
+                node_object = obj.G.Nodes.Objects{ idx};
             end
         end
     end
@@ -448,8 +446,8 @@ classdef FactorGraph < handle & matlab.mixin.Copyable
             
             % Now, let's go over EACH node object, and copy it (the Node classes
             % must have an implementation of a copy function).
-            cp.G.Nodes.CellNodeObject = cellfun( @(c) copy( c), ...
-                cp.G.Nodes.CellNodeObject, 'UniformOutput', false);
+            cp.G.Nodes.Objects = cellfun( @(c) copy( c), ...
+                cp.G.Nodes.Objects, 'UniformOutput', false);
         end
     end
     methods
@@ -492,6 +490,7 @@ classdef FactorGraph < handle & matlab.mixin.Copyable
         % Verbosity: 0, 1
         verbosity = 0;
     end
+    
     properties (SetAccess = protected)
         % Graph object
         G;
@@ -503,6 +502,12 @@ classdef FactorGraph < handle & matlab.mixin.Copyable
         variable_node_structs = struct( 'name', {}, 'num', []);
         % Same struct array but for factor nodes
         factor_node_structs = struct( 'name', {}, 'num', []);
+    end
+    
+    properties (Constant = true)
+        % Cell array of the Graph table (column) variable names
+        graph_table_col_names = {'Name', 'ID', 'Class', 'Objects', ...
+            'UUID'};
     end
 end
 
