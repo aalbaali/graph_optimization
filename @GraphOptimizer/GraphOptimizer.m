@@ -32,15 +32,6 @@ classdef GraphOptimizer < handle
             obj.verbosity    = p.Results.verb;
         end
         
-        function obj = optimize( obj)
-            %OPTIMIZE This is the main function that optimizes over the graph.
-            %
-            %   OPTIMIZE('linear_solver', lin_solver) specifies the linear
-            %   solver.
-            
-            obj.descend();
-        end
-        
         function obj = setLinearSolver( obj, lin_solver)
             %SETLINEARSOLVER set the linear solver.
             
@@ -68,9 +59,13 @@ classdef GraphOptimizer < handle
     methods (Access = public)
         % TEMPORARILY set to public for debugging
         
+        obj = optimize( obj);
+        
         % Initialize matrices constructs empty matrices of appropriate sizes
         initializeInternalParameters( obj);
         
+        % Reorder columns
+        reorderColumns( obj);
         % DESCEND finds the next set of nodes (as part of the main loop)
         % that minimizes the objective function.             
         descend( obj);
@@ -114,7 +109,6 @@ classdef GraphOptimizer < handle
     
     methods (Static = true)
         isready = checkFactorGraph( factor_graph, varargin);
-        
     end
     
     properties         

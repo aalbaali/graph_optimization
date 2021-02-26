@@ -22,3 +22,13 @@ fg.node("F_1").setCov( eye( 2));
 keyboard();
 % Check again
 GraphOptimizer.checkFactorGraph( fg, 1);
+
+%% Using the graph optimizer
+go = GraphOptimizer( fg);
+
+% Initialize internal parameters and Jacobian (does not fill in the Jacobian
+% values).
+go.initializeInternalParameters();
+
+% View the block-level Jacobian
+spy( go.m_werr_Jac_blocks);
