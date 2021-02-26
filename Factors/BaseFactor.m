@@ -430,7 +430,7 @@ classdef (Abstract) BaseFactor < handle & matlab.mixin.Copyable
             % Get a copy sqrt_information matrix because err_sqrt_infm checks
             % whether it is up to date or not. I think it'll (very slightly)
             % improve performance over calling.
-            err_sqrt_infm = obj.err_sqrt_infm(); %#ignore
+            err_sqrt_infm = obj.err_sqrt_infm(); 
             
             % Build a cell array of the same size as the unweighted error
             % Jacobian.

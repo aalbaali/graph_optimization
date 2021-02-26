@@ -77,7 +77,7 @@ end
 factor_prior = FactorR2();
 factor_prior.setEndNode( 1, fg.node( "X_1"));
 factor_prior.setMeas( rand( 2, 1));
-factor_prior.setCov( eye( 2));
+% factor_prior.setCov( eye( 2));
 fg.addFactorNode( factor_prior);
 % fg.addFactorNode( factor_prior, 'end_nodes', {fg.node("X_1")});
 
@@ -99,7 +99,7 @@ factor_lc.setEndNodes( fg.node("X_1"), fg.node("X_3"));
 fg.addFactorNode( factor_lc);
 
 % Set some measurement
-factor_lc.setMeas( rand( 1, 1));
+% factor_lc.setMeas( rand( 1, 1));
 %% Plot factor graph.
 close all;
 h = plot(fg.G, 'EdgeAlpha',0.7, 'Marker', 'o', 'MarkerSize', 3, ...
