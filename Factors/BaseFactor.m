@@ -584,7 +584,8 @@ classdef (Abstract) BaseFactor < handle & matlab.mixin.Copyable
         % Square root information matrix of the ERROR function.
         err_sqrt_infm = nan;
         
-        % Covariance matrix on the ERROR function, not the measurements!        
+        % Covariance matrix on the ERROR function, not the measurements!
+        % Initialized to nan.
         err_cov = nan;      
         
         % Information matrix of the ERROR function, not the measurements! The

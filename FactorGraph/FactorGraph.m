@@ -359,6 +359,94 @@ classdef FactorGraph < handle & matlab.mixin.Copyable
                 node_object = obj.G.Nodes.Objects{ idx};
             end
         end
+        
+        function node_names = getNodeNames( obj, varargin)
+            % GETNODENAMES() returns all node names in the graph.
+            %
+            % GETNODENAMES(class) returns all node names in the graph that are
+            % of Class class (string).
+            %
+            % GETNODENAMES(class, 'includes', generic_name) returns all node
+            % names in the graph that are of Class class (string) and include
+            % generic_name (case sensitive).
+            %
+            % GETNODENAMES('includes', generic_name) returns all node names that
+            % include generic_name (case sensitive).
+            
+            p = inputParser;
+            
+            % Default generic name is empty
+            defaultName = '';
+            % Default class name is []
+            defaultClass = [];
+            
+            expectedClasses = { 'Variable', 'Factor'};
+            % Validators
+            isValidClass = @( class) any(validatestring( lower( class), ...
+                expectedClasses));
+            isValidName = @( name) isstring( name) || ischar( name);
+            
+            addOptional( p, 'class', defaultClass, isValidClass);
+            addParameter( p, 'includes', defaultName, isValidName);
+            
+            parse( p, varargin{ :});
+            
+            generic_name = p.Results.includes;
+            class        = p.Results.class;
+            
+            % If class is empty (i.e., didn't specify whether it's a variable or
+            % a factor node), then return all nodes. Find cell array of all
+            if isempty( class)
+                node_names = obj.G.Nodes.Name;
+            else
+                % class nodes
+                node_names = obj.G.Nodes.Name( ...
+                    strcmpi( obj.G.Nodes.Class, class));
+            end
+            
+            % Find a subset of the cell array that include the generic name
+            node_names = node_names( contains( node_names, generic_name));
+            
+        end
+        
+        function node_names = getVariableNodeNames( obj, varargin)
+            %GETVARIABLENODENAMES() returns a cell array of the the names of the
+            %variable nodes. 
+            %
+            %GETVARIABLENODENAMES(generic_name) returns a cell array of the
+            %names of the variable nodes that *include* generic_name (case
+            %sensitive). E.g., GETVARIABLENODENAMES('X') could return {'X_1',
+            %'X_2'}.
+            
+            p = inputParser;
+            
+            defaultName = '';
+            isValidName = @( name) isstring( name) || ischar( name);
+            addOptional( p, 'name', defaultName, isValidName);
+            parse( p, varargin{ :});
+            generic_name = p.Results.name;
+            
+            node_names = obj.getNodeNames( 'Variable', 'includes', generic_name);
+        end
+        
+        function node_names = getFactorNodeNames( obj, varargin)
+            %GETFACTORNODENAMES() returns a cell array of the the names of the
+            %factor nodes.
+            %
+            %GETFACTORNODENAMES(generic_name) returns a cell array of the names
+            %of the factor nodes that *include* generic_name (case sensitive).
+            %E.g., GETVARIABLENODENAMES('F') could return {'F_1', 'FF_2'}.
+            
+            p = inputParser;
+            
+            defaultName = '';
+            isValidName = @( name) isstring( name) || ischar( name);
+            addOptional( p, 'name', defaultName, isValidName);
+            parse( p, varargin{ :});
+            generic_name = p.Results.name;
+            
+            node_names = obj.getNodeNames( 'Factor', 'includes', generic_name);
+        end
     end
     
     methods (Access = protected)
@@ -486,6 +574,7 @@ classdef FactorGraph < handle & matlab.mixin.Copyable
             end
         end
     end
+    
     properties 
         % Verbosity: 0, 1
         verbosity = 0;

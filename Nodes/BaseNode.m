@@ -292,7 +292,7 @@ classdef BaseNode < handle & matlab.mixin.Copyable
         % Covariance on the estimate. Initialized to an empty variable.
         cov   = [];
         
-        % Node Id
+        % Node Id. Initialzed to nan.
         id = nan;
         
         % Node name. This could be defined by the user (e.g., "PoseX_1")
