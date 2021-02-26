@@ -8,7 +8,7 @@ classdef GraphOptimizer < handle
             %   GRAPHOPTIMIZER( factor_graph) stores the factor_graph
             %   (reference).
             
-            isValidFactorGraph = @(fg) strcmp( class( fg), 'FactorGraph');
+            isValidFactorGraph = @(fg) isa( fg, 'FactorGraph');
             
             defaultFactorGraph = [];
             
@@ -23,6 +23,7 @@ classdef GraphOptimizer < handle
             obj.factor_graph = p.Results.factor_graph;
         end
     end
+    
     methods (Access = private)        
         function obj = optimize( obj)
             %OPTIMIZE This is the main function that optimizes over the graph.
@@ -83,6 +84,20 @@ classdef GraphOptimizer < handle
         updateGraph();
     end
     
+    methods (Static = true)
+        function isready = factorGraphIsReady( factor_graph)
+            % FACTORGRAPHISREADY checks whether a factor_graph is ready for
+            % optimization. This means that each node
+            %   1. has an initial value (if it's a variable node), 
+            %   2. has a measurement (if it's a factor node), and
+            %   3. has a covariance (if it's a factor node).
+            % It does not check whether a factor returns a valid error function
+            % or if it's missing some parameters. This may be done in the
+            % future.
+            
+        end
+    end
+    
     properties
         % Parameters to be used by the optimization
         
@@ -98,6 +113,7 @@ classdef GraphOptimizer < handle
         % Boolean flag to indicate whether COLAMD is to be used or not
         use_colamd = true;
     end
+    
     properties (SetAccess = private)
         % Internal variables. But I kept the GetAccess to public for debugging
         
@@ -113,6 +129,7 @@ classdef GraphOptimizer < handle
         % Step length
         m_step_length;
     end
+    
     properties (SetAccess = immutable)
         % The graph to optimizer over. Should be set in the constructor. Once
         % set, cannot be changed.
