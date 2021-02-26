@@ -7,12 +7,19 @@
 
 # To be done
 ## General
-1. Write an optimization class that takes a factor graph and computes that MAP estimate.
-2. Write a graph plotter class. We can plot the node locations based on the actual position of the robot. Furthermore, covariance ellipses can be added!
-
+- [ ] Write an optimization class that takes a factor graph and computes that MAP estimate.
+- [ ] Write a graph plotter class. We can plot the node locations based on the actual position of the robot. Furthermore, covariance ellipses can be added!
+   
 ## `BaseNode` and derived classes
-1. Maybe change the name from `BaseNode` to `VariableNode` since a `BaseFactor` is also a node. The reason for such weird naming is that I recently changed the `BaseFactor` name from `BaseEdge` and decided to treat factors as nodes (as should be) rather than treating them as edges.
-2. Write unit tests for each node.
+- [ ] Maybe change the name from `BaseNode` to `VariableNode` since a `BaseFactor` is also a node. The reason for such weird naming is that I recently changed the `BaseFactor` name from `BaseEdge` and decided to treat factors as nodes (as should be) rather than treating them as edges.
+- [ ] Write unit tests for each node.
 ## `BaseFactor` and derived classes
-1. Write unit tests for the `FactorGraph` class.
-2. Write unit tests for factor node. Try automating the unit test (for the derivatives at least).
+- [ ] Write unit tests for factor node. Try automating the unit test (for the derivatives at least).
+
+## `FactorGraph`
+- [x] I *need* to figure out how to copy `FactorGraph` objects. This is especially important when considering 
+## `GraphOptimizer`
+- [ ] Implement a static method to check if a `FactorGraph` is ready for implementation. This includes checking all the nodes
+   1. have initial values (for variable nodes), 
+   2. have measurements (for factor nodes), and
+   3. have (error) covariances (for factor nodes).

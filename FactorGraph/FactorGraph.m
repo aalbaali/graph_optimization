@@ -361,8 +361,6 @@ classdef FactorGraph < handle & matlab.mixin.Copyable
                 node_object = obj.G.Nodes.CellNodeObject{ idx};
             end
         end
-                
-        
     end
     
     methods (Access = protected)
@@ -430,6 +428,28 @@ classdef FactorGraph < handle & matlab.mixin.Copyable
                 obj.factor_node_structs( idx_fact_node_name).num = ...
                     node_id;                
             end
+        end
+        
+        function cp = copyElement( obj)
+            % COPYELEMENT allows for deep copies of objects of this class. This
+            % method is needed since this class ia a HANDLE class. This means
+            % that objects are passed by REFERENCE, not by value. Therefore, to
+            % copy an object, the method `copy' must be called. Example:
+            %    objectCopy = copy( originaObject);
+            % However, we need a unique UUID for each object. Therefore, in this
+            % method, a unique UUID is implemented for the new object.
+            
+            % Shallow copy object. 
+            cp = copyElement@matlab.mixin.Copyable( obj);
+            
+            % The graph G in this object is the SAME as in the original object!
+            % Because they're passed by reference. Therefore, a deep copy
+            % involves copying the Node objects (for both variables and factors)
+            
+            % Now, let's go over EACH node object, and copy it (the Node classes
+            % must have an implementation of a copy function).
+            cp.G.Nodes.CellNodeObject = cellfun( @(c) copy( c), ...
+                cp.G.Nodes.CellNodeObject, 'UniformOutput', false);
         end
     end
     methods
