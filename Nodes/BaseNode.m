@@ -36,7 +36,7 @@ classdef BaseNode < handle & matlab.mixin.Copyable
             %   name-value pairs. E.g., ('id', 5).
             
             % Set UUID
-            obj.UUID = java.util.UUID.randomUUID;
+            obj.UUID = obj.generateUUID();
             
             % Default values
             %   A `value' of nan implies it's not initialized.
@@ -75,7 +75,7 @@ classdef BaseNode < handle & matlab.mixin.Copyable
             obj.setId( p.Results.id);
             obj.setName( p.Results.name);
         end
-
+        
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         %   Setters
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -193,6 +193,15 @@ classdef BaseNode < handle & matlab.mixin.Copyable
             obj.increment( increment);
             out = obj.value;
         end
+        
+        function set.UUID( obj, UUID_in)
+            % Ensures that UUID is set only once! Even by an internal function.
+            if isempty( obj.UUID)
+                obj.UUID = UUID_in;
+            else
+                error("UUID already defined to %s", obj.UUID);
+            end
+        end
     end
     
     methods (Abstract = false, Static = true)        
@@ -208,6 +217,11 @@ classdef BaseNode < handle & matlab.mixin.Copyable
             % Ensure that it's a numeric integer (even though it could be stored
             % as a double)
             isvalid = isvalid && ( floor( id_in) == id_in);
+        end
+        
+        function uuid = generateUUID()
+            %GENERATEUUID generates a universal unique identifier.
+            uuid = java.util.UUID.randomUUID;
         end
     end
     
@@ -232,7 +246,16 @@ classdef BaseNode < handle & matlab.mixin.Copyable
         bool = isValidIncrement( increment);
     end
     
-    properties (Abstract = false, SetAccess = immutable)
+    methods (Access = protected)
+        function cp = copyElement( obj)
+            % Shallow copy object (doesn't copy the UUID)
+            cp = copyElement@matlab.mixin.Copyable( obj);
+            % Set UUID
+            cp.UUID = obj.generateUUID();
+        end
+    end
+    
+    properties (Abstract = false, SetAccess = protected, NonCopyable)
         % Universally unique identifier
         UUID;
     end
