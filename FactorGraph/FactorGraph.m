@@ -4,7 +4,7 @@ classdef FactorGraph < handle & matlab.mixin.Copyable
     % BaseEdge classes.
     methods (Access = public)
         function obj = FactorGraph( varargin)
-            %FACTORGRAPH 
+            %FACTORGRAPH
             %   @params[in][parameter] 'verb' : {0, 1}
             %       Verbosity. Default value is 0.
             

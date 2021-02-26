@@ -24,6 +24,7 @@ close all;
 addpath( '../Nodes');
 addpath( '../Factors');
 addpath( '../FactorGraph');
+addpath( '../Utils/');
 
 %% System parameters
 % This is a second order linear system. Set up the matrices for the system
