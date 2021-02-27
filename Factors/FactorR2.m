@@ -44,7 +44,7 @@ classdef FactorR2 < BaseFactor
             %value.
             
             % Check if poses are valid
-            if ~obj.valid_end_nodes( 1) || ~obj.valid_end_nodes( 2)
+            if ~obj.valid_end_nodes( 1)
                 error("Invalid end_nodes. May need initialization");
             end
             % First pose

@@ -9,6 +9,7 @@ function descend( obj)
     
     % TODO: Check if it's indeed a descent direction
     
+    keyboard();
     % Compute step length
     obj.computeStepLength();
     

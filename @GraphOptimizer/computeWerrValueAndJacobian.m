@@ -35,5 +35,8 @@ function computeWerrValueAndJacobian( obj)
             % Assign Jacobian
             obj.m_werr_Jac( idx_rows, idx_cols) = jacobian_cells{ lv2};
         end
+        
+        % Update the weighted error column matrix
+        obj.m_werr_val( idx_rows) = factor_node.werr_val;
     end
 end
