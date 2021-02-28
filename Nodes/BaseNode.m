@@ -292,7 +292,7 @@ classdef BaseNode < handle & matlab.mixin.Copyable
         UUID;
     end
     
-    properties (Abstract = true, SetAccess = immutable)        
+    properties (Abstract = true, SetAccess = protected)        
         
         % static const string: Node type (e.g., "NodeSE2"). I'll use the
         % convention of setting type to the class name.
