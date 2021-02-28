@@ -3,8 +3,8 @@ function computeStepLength( obj)
     % would reduce the objective value. For now, only the Armijo rule is
     % implemented.
     
-    % Make a copy of the factor graph: current iteration
-    fg_km1 = copy( obj.factor_graph);
+    % Get a copy of the variable values in the factor graph
+    var_values_km1 = obj.factor_graph.getVariableNodeValues();
     
     % Keep a copy of the error function, Jacobian, and objective function
     werr_val_km1 = obj.m_werr_val;
@@ -31,9 +31,9 @@ function computeStepLength( obj)
              % Update step length
              step_length = step_length * obj.optim_params.beta;
          end
-        % Make sure we're using the SAME factor graph from ( we need the same
+        % Make sure we're using the SAME node values graph from ( we need the same
         % starting points)
-        obj.factor_graph = copy( fg_km1);
+        obj.factor_graph.setVariableNodeValues( var_values_km1);
         % Increment updates
         obj.updateGraph( step_length * search_dir_km1);
         obj.computeWerrValueAndJacobian();
