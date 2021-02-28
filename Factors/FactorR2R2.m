@@ -17,23 +17,25 @@ classdef FactorR2R2 < BaseFactor
             obj.setEndNodeTypes( [ "NodeR2", "NodeR2"]);
         end
         
-        function setParams( obj, params_in)
-            % Call superclass
-            obj.setParams@BaseFactor( params_in);
+        function setParam( obj, field_in, param_in)
+            obj.params.(field_in) = param_in;
             
-            % Update internal parameters.
-            
-            % Dimension of error function
-            obj.setErrDim( size( obj.params.A, 1));
-        
-            % Dimension of the measurement (in this class, it could be 1 or 2. I
-            % chose to make it 2 to try it out).
-            obj.setMeasDim( size( obj.params.B, 2));
-        
-            % Number of random variables. 1. noise on the interoceptive measurement
-            % u, and 2 on process noise w_1 and w_2.
-            obj.setNumRvs( size( obj.params.L, 2));
-        end
+            switch field_in
+                case 'A'
+                    % Dimension of error function
+                    obj.setErrDim( size( obj.params.A, 1));
+                    
+                case 'B'
+                    % Dimension of the measurement (in this class, it could be 1
+                    % or 2. I chose to make it 2 to try it out).
+                    obj.setMeasDim( size( obj.params.B, 2));
+                    
+                case 'L'
+                    % Number of random variables. 1. noise on the interoceptive
+                    % measurement u, and 2 on process noise w_1 and w_2.
+                    obj.setNumRvs( size( obj.params.L, 2));
+            end
+        end        
     end
     
     methods (Static = false, Access = protected)

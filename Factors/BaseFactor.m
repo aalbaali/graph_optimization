@@ -343,12 +343,19 @@ classdef (Abstract) BaseFactor < handle & matlab.mixin.Copyable
             
         function setParam( obj, field_in, param_in)
             % SETPARAM( field_in, param_in) sets a single field in the params
-            % struct.            
+            % struct.
+            % 
+            % This function can be overloaded in the implemented class for
+            % further specific instructions (e.g., setting the number of design
+            % variables based on the size of the matrix A).
+            
             obj.params.( field_in) = param_in;
         end
         function setParams( obj, params_in)
+            % SETPARAMS( params_in) stores the set of parameters.
             % params setter
             obj.params = params_in;
+            cellfun( @(c) obj.setParam( c, params_in.(c)), fields( params_in));
         end
         
         function set.UUID( obj, UUID_in)
