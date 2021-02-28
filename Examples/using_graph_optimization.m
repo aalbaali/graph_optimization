@@ -12,7 +12,7 @@ building_graph_batch_R2;
 addpath( '..');
 %% Check if the factor graph is ready for optimization
 % Call the static function. Set verbosity to 1.
-GraphOptimizer.checkFactorGraph( fg, 1);
+checkFactorGraph( fg, 1);
 keyboard();
 
 % Add the missing measurements and covariances

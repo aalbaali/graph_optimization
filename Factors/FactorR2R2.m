@@ -14,21 +14,25 @@ classdef FactorR2R2 < BaseFactor
             
             % TEMPORARY!!! I should implement an input parser.
             % Array of end node types
-            obj.endNodeTypes = [ "NodeR2", "NodeR2"];
+            obj.setEndNodeTypes( [ "NodeR2", "NodeR2"]);
+        end
+        
+        function setParams( obj, params_in)
+            % Call superclass
+            obj.setParams@BaseFactor( params_in);
+            
+            % Update internal parameters.
             
             % Dimension of error function
-            obj.errDim = size( obj.params.A, 1);
+            obj.setErrDim( size( obj.params.A, 1));
         
             % Dimension of the measurement (in this class, it could be 1 or 2. I
             % chose to make it 2 to try it out).
-            obj.measDim = size( obj.params.B, 2);
+            obj.setMeasDim( size( obj.params.B, 2));
         
             % Number of random variables. 1. noise on the interoceptive measurement
             % u, and 2 on process noise w_1 and w_2.
-            obj.numRVs = size( obj.params.L, 2);
-            
-            % Number of end nodes: it's a binary edge.
-            obj.numEndNodes = 2;
+            obj.setNumRvs( size( obj.params.L, 2));
         end
     end
     
@@ -71,7 +75,7 @@ classdef FactorR2R2 < BaseFactor
         end
         
         % Random varaibles covariance validator
-        function isvalid = isValidCov( obj, mat_in)
+        function isvalid = isValidCov( ~, mat_in)
             % First check size
             isvalid = true;
             % Check if matrix is symmetric

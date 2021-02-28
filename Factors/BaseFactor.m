@@ -297,7 +297,7 @@ classdef (Abstract) BaseFactor < handle & matlab.mixin.Copyable
             end
         end
         
-        function setEndNode( obj, num, node)
+        function obj = setEndNode( obj, num, node)
             % Sets a single endNode
             % @params[in] num : 
             %   The NUMBER (positive int) of the node to be added (the order
@@ -327,10 +327,27 @@ classdef (Abstract) BaseFactor < handle & matlab.mixin.Copyable
             
             % Set the node to a 'valid' node.
             obj.valid_end_nodes( num) = true;
+        end        
+        
+        function set.measDim( obj, measDim_in)
+            obj.measDim = measDim_in;
         end
         
-        % params setter
+        function set.endNodeTypes( obj, endNodeTypes_in)
+            % If it's already set, then give a warning
+            if ~ isempty( obj.endNodeTypes)
+                warning('EndNodeTypes already initialized');
+            end
+            obj.endNodeTypes = endNodeTypes_in;            
+        end
+            
+        function setParam( obj, field_in, param_in)
+            % SETPARAM( field_in, param_in) sets a single field in the params
+            % struct.            
+            obj.params.( field_in) = param_in;
+        end
         function setParams( obj, params_in)
+            % params setter
             obj.params = params_in;
         end
         
@@ -342,6 +359,7 @@ classdef (Abstract) BaseFactor < handle & matlab.mixin.Copyable
                 error("UUID already defined to %s", obj.UUID);
             end
         end
+        
         
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         %   Getters
@@ -523,6 +541,42 @@ classdef (Abstract) BaseFactor < handle & matlab.mixin.Copyable
     end
     
     methods (Access = protected)
+        function obj = setErrDim( obj, errDim_in)
+            % SETERRDIM( errDim_in) is a protected method that sets the expected
+            % error dimension
+            if ~isempty( obj.errDim)
+                warning('Error dimension is already set up');
+            end
+            obj.errDim = errDim_in;
+        end
+        
+        function obj = setMeasDim( obj, measDim_in)
+            % SETERRDIM( errDim_in) is a protected method that sets the expected
+            % error dimension
+            if ~isempty( obj.measDim)
+                warning('Measurement dimension is already set up');
+            end
+            obj.measDim = measDim_in;
+        end
+        
+        function obj = setNumRvs( obj, numRvs_in)
+            % SETERRDIM( errDim_in) is a protected method that sets the expected
+            % error dimension
+            if ~isempty( obj.numRVs)
+                warning('Number of random variables is already set up');
+            end
+            obj.numRVs = numRvs_in;
+        end
+        
+        
+        
+        function obj = setEndNodeTypes( obj, endNodeTypes_in)
+            % SETENDNODETYPES( endNodeTypes_in) sets endNodeTypes and updates
+            % the number of end nodes
+            obj.endNodeTypes = endNodeTypes_in;
+            obj.numEndNodes  = length( endNodeTypes_in);
+        end
+        
         function cp = copyElement( obj)
             % COPYELEMENT allows for deep copies of objects of this class. This
             % method is needed since this class ia a HANDLE class. This means

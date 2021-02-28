@@ -17,23 +17,33 @@ classdef FactorR2 < BaseFactor
             obj.numEndNodes = 1;
 
             % Array of end node types
-            obj.endNodeTypes = [ "NodeR2"];
-
+            obj.setEndNodeTypes( [ "NodeR2"]);
+        end
+        
+        function setParams( obj, params_in)
+            % If the parameter 'L' is not specified, then set it to identity of
+            % the appropriate size
+            if ~ isfield( params_in, 'L')
+                params_in.L = eye( size( params.C, 1));                
+            end
+            
+            % Call superclass
+            obj.setParams@BaseFactor( params_in);
+            
+            
+            % Update internal parameters.
+            
             % Dimension of error function
-            obj.errDim = 2;
-
+            obj.setErrDim( size( obj.params.C, 1));
+        
             % Dimension of the measurement (in this class, it could be 1 or 2. I
             % chose to make it 2 to try it out).
-            obj.measDim = 2;
-
+            obj.setMeasDim( size( obj.params.C, 1));
+        
             % Number of random variables. 1. noise on the interoceptive measurement
             % u, and 2 on process noise w_1 and w_2.
-            obj.numRVs = 2;
+            obj.setNumRvs( size( obj.params.L, 2));
             
-            if isempty(fields(obj.params))
-                obj.params = struct( 'L', eye( obj.numRVs), 'C', ...
-                eye( obj.measDim));
-            end
         end
     end
     
