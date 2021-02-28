@@ -162,14 +162,31 @@ classdef GraphOptimizer < handle
                 out = obj.m_werr_val;
             end
         end
-    end
-    methods (Static = true)
-        isready = checkFactorGraph( factor_graph, varargin);
-    end
-    
-    properties         
-        % Verbosity. Default value is 1.
-        verbosity = 1;
+        
+        function set.reorder_variables( obj, val_in)
+            % Check that it's a logical argument
+            p = inputParser;
+            addRequired( p, 'val_in', @(val_in) islogical( val_in));
+            parse( p, val_in);
+            obj.reorder_variables = p.Results.val_in;
+        end
+        
+        function set.reorder_element_variables( obj, val_in)
+            % Check that it's a logical argument
+            p = inputParser;
+            addRequired( p, 'val_in', @(val_in) islogical( val_in));
+            parse( p, val_in);
+            obj.reorder_element_variables = p.Results.val_in;
+        end
+        
+        function set.verbosity( obj, verb_in)
+            % Check that it's a logical argument
+            p = inputParser;
+            addRequired( p, 'verb_in', @(val_in) any( cellfun(@(c) ...
+                c == verb_in( val_in), obj.valid_verbosity)));
+            parse( p, verb_in);
+            obj.verbosity = p.Results.verb_in;
+        end
     end
     
     properties (SetAccess = protected)    
@@ -226,11 +243,6 @@ classdef GraphOptimizer < handle
         % Step length
         m_step_length = 1;
 
-    end
-    
-    properties
-        % Parameters to be used by the optimization
-        
         % Optimization scheme is usually either Gauss-Newton (GN) or
         % Levenberg-Marquardt. Though in theory we can add other methods such as
         % steepest descent or better methods.
@@ -239,13 +251,6 @@ classdef GraphOptimizer < handle
         % Linear solver. This can be QR, Cholesky, or some other powerful linear
         % solvers.
         linear_solver = 'QR';
-        
-        % Boolean flag to indicate whether to reorder variables (block-wise).
-        reorder_variables = true;
-        
-        % Boolean flag to reorded design variables at the element level (not
-        % variable level)
-        reorder_element_variables = false;
         
         % Optimization options:
         %   max_iterations  
@@ -267,6 +272,20 @@ classdef GraphOptimizer < handle
             1e-4, 'alpha_0', 1, 'tol_norm_obj_grad', 1e-5);
     end
     
+    properties
+        % Parameters to be used by the optimization
+        
+        % Boolean flag to indicate whether to reorder variables (block-wise).
+        reorder_variables = true;
+        
+        % Boolean flag to reorded design variables at the element level (not
+        % variable level)
+        reorder_element_variables = false;
+        
+        % Verbosity. Default value is 1.
+        verbosity = 1;
+    end
+    
     properties (SetAccess = protected)
         % The graph to optimizer over. Should be set in the constructor. Once
         % set, cannot be changed.
@@ -279,5 +298,7 @@ classdef GraphOptimizer < handle
         
         % Valid optimization schemes
         valid_optimization_schemes = { 'gn', 'lm'};
+        
+        valid_verbosity = { 0, 1};
     end
 end

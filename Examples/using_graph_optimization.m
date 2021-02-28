@@ -39,9 +39,9 @@ rng('default');
 % Factor graph
 fg = FactorGraph();
 % Add nodes (3 nodes)
-fg.addVariableNode( NodeR2( [ 0; 0] + randn( 2, 1) * 1e-1));
-fg.addVariableNode( NodeR2( [ 0; 1] + randn( 2, 1) * 1e-1));
-fg.addVariableNode( NodeR2( [ 1; 0] + randn( 2, 1) * 1e-1));
+fg.addVariableNode( NodeR2( [ 0; 0] + randn( 2, 1)));
+fg.addVariableNode( NodeR2( [ 0; 1] + randn( 2, 1)));
+fg.addVariableNode( NodeR2( [ 1; 0] + randn( 2, 1)));
 
 % Prior Factor
 %   parameters
@@ -82,6 +82,7 @@ go = GraphOptimizer( fg);
 
 go.setOptimizationScheme('gn');
 go.setLinearSolver( 'qr');
+go.reorder_variables = true;
 go.reorder_element_variables = false;
 go.verbosity = 1;
 

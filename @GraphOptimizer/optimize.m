@@ -17,7 +17,7 @@ function [ success, optim_stats] = optimize( obj)
     end
     
     % Check if graph is valid. Pass the verbosity
-    obj.checkFactorGraph( obj.factor_graph, obj.verbosity);
+    checkFactorGraph( obj.factor_graph, obj.verbosity);
     
     % Initialize internal parameters and Jacobian (does not fill in the Jacobian
     % values).
