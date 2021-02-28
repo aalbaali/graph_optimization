@@ -398,7 +398,7 @@ classdef FactorGraph < handle & matlab.mixin.Copyable
             class        = p.Results.class;
             
             % If class is empty (i.e., didn't specify whether it's a variable or
-            % a factor node), then return all nodes. Find cell array of all
+            % a factor node), then return all nodes.
             if isempty( class)
                 node_names = obj.G.Nodes.Name;
             else
@@ -449,6 +449,55 @@ classdef FactorGraph < handle & matlab.mixin.Copyable
             generic_name = p.Results.name;
             
             node_names = obj.getNodeNames( 'Factor', 'includes', generic_name);
+        end
+        
+        function node_values = getVariableNodeValues( obj, varargin)
+            % GETVARIABLENODEVALUES() returns a cell array of the values of all
+            % the variable nodes in the graph.
+            %
+            % GETVARIABLENODEVALUES( generic_name) would return a cell array of
+            % the values of the variable nodes that include the string
+            % generic_name.
+            
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            %%% Input parser
+            p = inputParser;
+            
+            defaultName = '';
+            isValidName = @( name) isstring( name) || ischar( name);
+            addOptional( p, 'name', defaultName, isValidName);
+            parse( p, varargin{ :});
+            generic_name = p.Results.name;
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            
+            node_values = cellfun(@( c) obj.node( c).value, ...
+                obj.getVariableNodeNames( generic_name), 'UniformOutput', false);
+        end
+        
+        function obj = setVariableNodeValues( obj, node_values)
+            % SETVARIABLENODEVALUES( node_values) sets the values of the
+            % variable factors in the graph to the elements of node_values (cell
+            % array). node_values should match the number of nodes in the graph
+            
+            
+            
+            % Node names
+            variableNodeNames = obj.getVariableNodeNames();
+            
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            %%% Input parser
+            p = inputParser;
+            isValidNodeValues = @( name) iscell( node_values) ...
+                && length( node_values) == length( variableNodeNames);
+            addOptional( p, 'node_values', isValidNodeValues);
+            parse( p, node_values);
+            node_values = p.Results.node_values;
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            
+            
+            arrayfun(@( kk) obj.node( variableNodeNames{ kk}).setValue( ...
+                node_values{ kk}), 1 : length( variableNodeNames), ...
+                'UniformOutput', false);
         end
     end
     
