@@ -182,7 +182,7 @@ classdef BaseNode < handle & matlab.mixin.Copyable
         function out = increment( obj, increment)
             %INCREMENT : Increment `value' with an increment using the
             %   user-defined `oplus' method.
-            
+
             % Check if value is initialized
             if ~obj.m_value_initialized
                 error("Value not initialized");

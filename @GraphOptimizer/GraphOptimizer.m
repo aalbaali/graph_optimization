@@ -78,11 +78,19 @@ classdef GraphOptimizer < handle
         % Builds the weighted error value column matrix and the full Jacobian
         % and stores them in private members of the class.
         % sparse Jacobian.
-        computeWerrValueAndJacobian( obj);
+        computeWerrValueAndJacobian( obj, varargin);
         
-        % Constructs a linear system to be solved. This depends on the choice of
-        % the optimization scheme. E.g., GN, LM, etc.
-        constructLinearSystem( obj);
+        % Method to compute the weighted error only (without the Jacobian)
+        [a,b] = computeWerr( obj);
+        
+        function obj_val = getObjectiveValue( obj)
+            % GETOBJECTIVEVALUE returns the value of the objective function
+            % using the current m_werr_val value.
+            obj_val = (1/2) * sum( obj.m_werr_val .^2);
+        end
+%         % Constructs a linear system to be solved. This depends on the choice of
+%         % the optimization scheme. E.g., GN, LM, etc.
+%         constructLinearSystem( obj);
         
         % Solves the (perturbed)linear system. This would depend on the choice
         % of the linear solver (QR, cholesky, etc.). This should include a flag
@@ -96,7 +104,7 @@ classdef GraphOptimizer < handle
                 
         % Updates the graph object by incrementing the search direction and step
         % lengths into the innner nodes.
-        updateGraph( obj);
+        updateGraph( obj, varargin);
         
         function obj = updateJacobianRowIndices( obj)
             % UPDATEJACOBIANROWINDICES() updates m_idx_Jac_rows which is the
@@ -123,6 +131,31 @@ classdef GraphOptimizer < handle
         end
     end
     
+    methods
+        function out = get.m_search_direction( obj)
+            % Output it in a column matrix            
+            size_err = size( obj.m_search_direction);
+            if size_err( 2) == 1 && size_err( 1) == obj.m_num_cols_Jac
+                out = obj.m_search_direction;
+            elseif size_err( 1) == 1 && size_err( 2) == obj.m_num_cols_Jac
+                out = reshape( obj.m_search_direction , [], 1);
+            else
+                out = obj.m_search_direction;
+            end
+        end
+        
+        function out = get.m_werr_val( obj)
+            % Output it in a column matrix            
+            size_err = size( obj.m_werr_val);
+            if size_err( 2) == 1 && size_err( 1) == obj.m_num_cols_Jac
+                out = obj.m_werr_val;
+            elseif size_err( 1) == 1 && size_err( 2) == obj.m_num_cols_Jac
+                out = reshape( obj.m_werr_val , [], 1);
+            else
+                out = obj.m_werr_val;
+            end
+        end
+    end
     methods (Static = true)
         isready = checkFactorGraph( factor_graph, varargin);
     end
@@ -185,7 +218,11 @@ classdef GraphOptimizer < handle
         m_werr_Jac_blocks;
         
         % Step length
-        m_step_length;
+        m_step_length = 1;
+        
+        % Linear system matrices A * x = b
+        m_lin_sys_A;
+        m_lin_sys_b;
     end
     
     properties
@@ -202,11 +239,17 @@ classdef GraphOptimizer < handle
         
         % Boolean flag to indicate whether COLAMD is to be used or not
         use_colamd = true;
+        
+        % Optimization options
+        optim_params = struct('max_iterations', 1e3, 'beta', 0.6, ...
+            'max_armijo_iterations', 15, 'sigma', 1e-4, 'stoppint_criterion', 1e-4);
     end
     
     properties (SetAccess = protected)
         % The graph to optimizer over. Should be set in the constructor. Once
         % set, cannot be changed.
         factor_graph = [];
+        
+        % A copy of the factor graph
     end
 end
