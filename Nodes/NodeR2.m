@@ -14,10 +14,7 @@ classdef NodeR2 < BaseNode
         % Constructor
         function obj = NodeR2( varargin)
             % Call base constructor to initialize value if necessary.
-            obj = obj@BaseNode( varargin{:});
-            
-            obj.dim = 2;
-            obj.dof = 2;
+            obj = obj@BaseNode( varargin{:}, 'dim', 2, 'dof', 2);
         end
     end
     

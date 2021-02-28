@@ -49,9 +49,9 @@ classdef NodeRn < BaseNode
         end
         
         % Check validity of the increment
-        function isvalid = isValidIncrement( increment)
+        function isvalid = isValidIncrement(obj, increment)
             % This is the same as valid element
-            isvalid = NodeR2.isValidValue( increment);
+            isvalid = obj.isValidValue( increment);
             
             isvalid = isvalid && all( ~isinf( increment));
             isvalid = isvalid && all( ~isnan( increment));
@@ -59,7 +59,6 @@ classdef NodeRn < BaseNode
     end
     
     properties (SetAccess = immutable)
-        
         % Type of this node should match that class name
         type = string( mfilename);
         

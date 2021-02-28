@@ -47,8 +47,6 @@ classdef BaseNode < handle & matlab.mixin.Copyable
             %   A `name' is different from `type' and can be user defined.
             default_name  = nan;
             
-            % Input parser
-            p = inputParser;
             % Lambda functions for validating inputs            
             %   A `value' can either be a valid value (check isValidValue) or it
             %   can be a nan (scalar, not array).
@@ -59,27 +57,44 @@ classdef BaseNode < handle & matlab.mixin.Copyable
             %   A valid name should only be a string
             isValidName  = @(name) isstring( name) || ischar( name);
             isValidDim   = @( dim) isscalar( dim) && isreal( dim) && dim > 0;
+
+            % First input parser
+            p1 = inputParser;
             
-            % `value' is `optional' (if passed, it MUST be the FIRST argument).
-            addOptional ( p, 'value', default_value, isValidValue);            
+            % Second input parser (don't take the values because they may depend
+            % on the dimension (another input parameter)
+            p2 = inputParser;
+            
+            addParameter( p1, 'dim', [], isValidDim);
+            addParameter( p1, 'dof', [], isValidDim);
+            if length( varargin) > 1 && ~ischar( varargin{ 1})
+                parse( p1, varargin{ 2 : end});
+                % `value' is `optional' (if passed, it MUST be the FIRST argument).
+                addOptional ( p2, 'value', default_value, isValidValue);   
+            elseif length( varargin) == 1
+                parse( p1);
+            else
+                parse( p1, varargin{ :});
+            end
+            obj.dim = p1.Results.dim;
+            obj.dof = p1.Results.dof;            
+            
+            
+            
+            addParameter( p2, 'dim', [], isValidDim);
+            addParameter( p2, 'dof', [], isValidDim);
             % `id' is `parameter' (if passed, it MUST be specified using
             % name-value pair).
-            addParameter( p, 'id', default_id, isValidId);
+            addParameter( p2, 'id', default_id, isValidId);
             % `name' is an (optional) parameter. So a name-value argument must
             % be passed.
-            addParameter( p, 'name', default_name, isValidName);
-            addParameter( p, 'dim', [], isValidDim);
-            addParameter( p, 'dof', [], isValidDim);
+            addParameter( p2, 'name', default_name, isValidName);
+
+            parse( p2, varargin{ :});
             
-            % Parse 
-            parse(p, varargin{:});
-            
-            % Store results
-            obj.setValue( p.Results.value);
-            obj.setId( p.Results.id);
-            obj.setName( p.Results.name);
-            obj.dim = p.Results.dim;
-            obj.dof = p.Results.dof;
+            if isfield( p2.Results, 'value')
+                obj.setValue( p2.Results.value);
+            end
             
             if obj.dof > obj.dim
                 warning( 'dof > dim');
