@@ -1,42 +1,48 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %   An implementation of the BaseNode class. 
 %
-%   This is a 2D linear node. This should be generalized into multidimensional
+%   This is a n-D linear node. This should be generalized into multidimensional
 %   linear class (perhaps add another Abstract class that inhertics from
 %   BaseNode).
 %   
 %   Amro Al Baali
-%   23-Feb-2021
+%   28-Feb-2021
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-classdef NodeR2 < BaseNode
-    %NODER2 Implementation of BaseNode on elements of R^2 space.    
+classdef NodeRn < BaseNode
+    %NODER2 Implementation of BaseNode on elements of R^n space.    
     methods (Access = public)
         % Constructor
-        function obj = NodeR2( varargin)
-            % Call base constructor to initialize value if necessary.
-            obj = obj@BaseNode( varargin{:});
+        function obj = NodeRn( dim, varargin) 
+            %  NODERN( dim) constructs a variable node with dimension dim (for
+            %  variables in the linear space, dim == dof)
             
-            obj.dim = 2;
-            obj.dof = 2;
+            p = inputParser;
+            addRequired( p, 'dim', @( dim) isscalar( dim) && isreal( dim) ...
+                && dim >= 1);
+            parse( p , dim);          
+            dim = p.Results.dim;
+            
+            % Call superclass constructor
+            obj = obj@BaseNode(varargin{ : }, 'dim', dim, 'dof', dim);
         end
     end
     
-    methods (Static = true)
+    methods (Static = false)
         % Static methods can be accessed without instantiating an object. These
         % can be used to access the node type and degrees of freedom (properties
         % that are not specific to any implementation)
         
         
         % Increment value
-        function value_out = oplus(value_in, xi)
+        function value_out = oplus(~, value_in, xi)
             % Linear case
             value_out = value_in + xi;
         end
         
         % Check validity of the element
-        function isvalid = isValidValue( value_in)
+        function isvalid = isValidValue(obj, value_in)
             % Value should be a [2x1] column matrix
-            isvalid = all( size( value_in) == [ 2, 1]);
+            isvalid = all( size( value_in) == [ obj.dim, 1]);
                         
             isvalid = isvalid && all( ~isinf( value_in));
             isvalid = isvalid && all( ~isnan( value_in));

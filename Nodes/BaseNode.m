@@ -58,6 +58,7 @@ classdef BaseNode < handle & matlab.mixin.Copyable
             isValidId    = @(id) obj.isValidId( id) || ( isscalar( id) && isnan( id));
             %   A valid name should only be a string
             isValidName  = @(name) isstring( name) || ischar( name);
+            isValidDim   = @( dim) isscalar( dim) && isreal( dim) && dim > 0;
             
             % `value' is `optional' (if passed, it MUST be the FIRST argument).
             addOptional ( p, 'value', default_value, isValidValue);            
@@ -67,6 +68,8 @@ classdef BaseNode < handle & matlab.mixin.Copyable
             % `name' is an (optional) parameter. So a name-value argument must
             % be passed.
             addParameter( p, 'name', default_name, isValidName);
+            addParameter( p, 'dim', [], isValidDim);
+            addParameter( p, 'dof', [], isValidDim);
             
             % Parse 
             parse(p, varargin{:});
@@ -75,6 +78,12 @@ classdef BaseNode < handle & matlab.mixin.Copyable
             obj.setValue( p.Results.value);
             obj.setId( p.Results.id);
             obj.setName( p.Results.name);
+            obj.dim = p.Results.dim;
+            obj.dof = p.Results.dof;
+            
+            if obj.dof > obj.dim
+                warning( 'dof > dim');
+            end
         end
         
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -89,15 +98,15 @@ classdef BaseNode < handle & matlab.mixin.Copyable
             % Check if input is a scalar nan
             if isscalar( value_in) && isnan( value_in)
                 obj.value = value_in;
-                % Indicate that the value is not longer initialized.
+                % Indicate that the value is no longer initialized.
                 obj.m_value_initialized = false;
                 return;
             end
             
-            % If it's not a scalar nan, then check if the measurement is valid.
-            if ~obj.isValidValue( value_in)
-                error("Invalid input");
-            end
+            p = inputParser;
+            addRequired( p, 'value_in', @obj.isValidValue);
+            parse( p, value_in);
+            value_in = p.Results.value_in;
             
             % Set the internal value
             obj.value = value_in;
@@ -221,7 +230,7 @@ classdef BaseNode < handle & matlab.mixin.Copyable
         end
     end
     
-    methods (Abstract = true, Static = true)
+    methods (Abstract = true, Static = false)
         % Static methods can be accessed without instantiating an object. These
         % can be used to access the node type and degrees of freedom (properties
         % that are specific to the implemented class but not a function of the
@@ -268,7 +277,7 @@ classdef BaseNode < handle & matlab.mixin.Copyable
         UUID;
     end
     
-    properties (Abstract = true, Constant = true)        
+    properties (Abstract = true, SetAccess = immutable)        
         
         % static const string: Node type (e.g., "NodeSE2"). I'll use the
         % convention of setting type to the class name.

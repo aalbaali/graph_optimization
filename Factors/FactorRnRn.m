@@ -4,12 +4,12 @@
 %   Amro Al Baali
 %   23-Feb-2021
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-classdef FactorR2R2 < BaseFactor
+classdef FactorRnRn < BaseFactor
     %FACTORR2R2 Implementation of BaseEdge between two R^2 elements
     
     methods
         % Constructor
-        function obj = FactorR2R2( varargin)
+        function obj = FactorRnRn( varargin)
             obj = obj@BaseFactor( varargin{:});
             
             % TEMPORARY!!! I should implement an input parser.
