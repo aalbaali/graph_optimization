@@ -33,7 +33,11 @@ function updateGraph( obj, varargin)
         % Compute the row indices to extract from INCREMENT        
         idx_rows = obj.m_idx_Jac_cols( lv1) + ( 0 : ...
             obj.m_info_variables( lv1).dof - 1);
-        % Increment the node in the graph
+         
+        % Increment the node in the graph. 
+        %   The '+' operator is overloaded in the variable nodes. Furthermore,
+        %   since we're passing the nodes by reference, then the updated value
+        %   is stored in the variable node object.
         obj.node( obj.m_info_variables( lv1).name) + increment( idx_rows);
     end
 end

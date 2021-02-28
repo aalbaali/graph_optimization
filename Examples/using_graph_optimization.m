@@ -74,11 +74,16 @@ factor.setEndNodes( fg.node("X_2"), fg.node("X_3"));
 %   Add to factor graph
 fg.addFactorNode( factor);
 
-% Plot graph for visualization
-plot( fg.G);
+% % Plot graph for visualization
+% plot( fg.G);
 
 % Set up the graph optimization
 go = GraphOptimizer( fg);
 
+go.setOptimizationScheme('gn');
+go.setLinearSolver( 'qr');
+go.reorder_element_variables = false;
+go.verbosity = 1;
+
 % Optimize
-go.optimize();
+[a, b] = go.optimize();

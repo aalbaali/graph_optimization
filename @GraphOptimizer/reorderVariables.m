@@ -1,6 +1,6 @@
-function reorderColumns( obj)
-    %REORDERCOLUMNS() finds a new ordering for the graph using some ordering
-    %such as COLAMD on a *block level*. 
+function reorderVariables( obj)
+    %REORDERVARIABLES() finds a new variable ordering (i.e., block-wise Jacobian
+    %column ordering) using colamd.
     
     % Find the column ordering of the block-level Jacobian
     idx_cols = colamd( obj.m_werr_Jac_blocks);

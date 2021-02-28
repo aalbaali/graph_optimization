@@ -8,7 +8,7 @@ classdef GraphOptimizer < handle
             %   GRAPHOPTIMIZER( factor_graph) stores the factor_graph
             %   (reference).
             %
-            %   GRAPHOPTIMIZER( factor_graph, verbosity) stores the factor graph
+            %   GRAPHOPTIMIZER( factor_graph, 'verb', verbosity) stores the factor graph
             %   (as a reference) and sets verbosity. Verbosity is either 0 or 1.
             %   Default value is 1.
             
@@ -23,7 +23,7 @@ classdef GraphOptimizer < handle
             
             addOptional( p, 'factor_graph', defaultFactorGraph, ...
                 isValidFactorGraph);
-            addOptional( p, 'verb', defaultVerb, isValidVerb);
+            addParameter( p, 'verb', defaultVerb, isValidVerb);
             
             parse(p, varargin{ :});
             
@@ -32,21 +32,38 @@ classdef GraphOptimizer < handle
             obj.verbosity    = p.Results.verb;
         end
         
+        function obj = setOptimizationScheme( obj, optimization_scheme)
+            % SETOPTIMIZATIONSCHEME( optimization_scheme) sets the optimizaition
+            % scheme (if it's a valid one)
+            
+            % Convert to lower case
+            optimization_scheme = lower( optimization_scheme);
+            
+            % Check if solver is in the list
+            isValidOptimizationScheme = @( opt) any( validatestring( opt, ...
+                obj.valid_optimization_schemes));           
+            p = inputParser;
+            addRequired( p, 'opt_scheme', isValidOptimizationScheme);
+            
+            parse( p, optimization_scheme);
+            
+            obj.optimization_scheme = p.Results.opt_scheme;
+            
+        end
         function obj = setLinearSolver( obj, lin_solver)
             %SETLINEARSOLVER set the linear solver.
             
             % Convert to lower case
             lin_solver = lower( lin_solver);
             
-            % Expected solvers
-            expected_solvers = {'qr', 'cholesky'};
             % Check if solver is in the list
             isValidLinSolver = @( solver) any( validatestring( solver, ...
-                expected_solvers));           
+                obj.valid_linear_solvers));           
             p = inputParser;
-            addRequired( p, lin_solver, isValidLinSolver);
+            addRequired( p, 'lin_solver', isValidLinSolver);
+            parse( p, lin_solver)
             
-            obj.linear_solver = lin_solver;
+            obj.linear_solver = p.Results.lin_solver;
         end
         
         function node_obj = node( obj, node_name)
@@ -54,23 +71,26 @@ classdef GraphOptimizer < handle
             %calls the NODE method from the factor_graph object.
             node_obj = obj.factor_graph.node( node_name);
         end
+        
+        % Main optimization function. Has the main loop.
+        [ success, optim_stats] = optimize( obj);
+        
+        function obj_val = getObjectiveValue( obj)
+            % GETOBJECTIVEVALUE returns the value of the objective function
+            % using the current m_werr_val value.
+            obj_val = (1/2) * sum( obj.m_werr_val .^2);
+        end
     end
     
-    methods (Access = public)
+    methods (Access = private)
         % TEMPORARILY set to public for debugging
-        
-        optimize( obj);
         
         % Initialize matrices constructs empty matrices of appropriate sizes
         initializeInternalParameters( obj);
         
         % Reorder columns
-        reorderColumns( obj);
-        
-        % DESCEND finds the next set of nodes (as part of the main loop)
-        % that minimizes the objective function.             
-        descend( obj);
-        
+        reorderVariables( obj);
+
         % Computes search direction and stores it in a private object in this
         % class instead of passing it by value.
         computeSearchDirection( obj);
@@ -81,21 +101,7 @@ classdef GraphOptimizer < handle
         computeWerrValueAndJacobian( obj, varargin);
         
         % Method to compute the weighted error only (without the Jacobian)
-        [a,b] = computeWerr( obj);
-        
-        function obj_val = getObjectiveValue( obj)
-            % GETOBJECTIVEVALUE returns the value of the objective function
-            % using the current m_werr_val value.
-            obj_val = (1/2) * sum( obj.m_werr_val .^2);
-        end
-%         % Constructs a linear system to be solved. This depends on the choice of
-%         % the optimization scheme. E.g., GN, LM, etc.
-%         constructLinearSystem( obj);
-        
-        % Solves the (perturbed)linear system. This would depend on the choice
-        % of the linear solver (QR, cholesky, etc.). This should include a flag
-        % that indicates if an element-wise COLAMD should be implemented.
-        solveLinearSystem( obj);
+        [werr_val, wobj_val] = computeWerr( obj);
         
         % Computes step length for the given search direction. For now, it'll be
         % Armijo rule. In the future, it could be updated to Wolfe-Powell, or a
@@ -121,6 +127,7 @@ classdef GraphOptimizer < handle
             obj.m_idx_Jac_cols = cumsum( [ obj.m_info_variables.dof]) ...
                 - [ obj.m_info_variables.dof] + 1;
         end
+        
         function printf( obj, varargin)
             % A function that prints to the console based on verbosity
             switch obj.verbosity
@@ -165,8 +172,7 @@ classdef GraphOptimizer < handle
         verbosity = 1;
     end
     
-%     properties (SetAccess = protected)
-    properties (SetAccess = public)
+    properties (SetAccess = protected)    
         % TEMPORARILY set to public
         
         % Internal variables. But I kept the GetAccess to public for debugging
@@ -219,10 +225,7 @@ classdef GraphOptimizer < handle
         
         % Step length
         m_step_length = 1;
-        
-        % Linear system matrices A * x = b
-        m_lin_sys_A;
-        m_lin_sys_b;
+
     end
     
     properties
@@ -237,19 +240,44 @@ classdef GraphOptimizer < handle
         % solvers.
         linear_solver = 'QR';
         
-        % Boolean flag to indicate whether COLAMD is to be used or not
-        use_colamd = true;
+        % Boolean flag to indicate whether to reorder variables (block-wise).
+        reorder_variables = true;
         
-        % Optimization options
-        optim_params = struct('max_iterations', 1e3, 'beta', 0.6, ...
-            'max_armijo_iterations', 15, 'sigma', 1e-4, 'stoppint_criterion', 1e-4);
+        % Boolean flag to reorded design variables at the element level (not
+        % variable level)
+        reorder_element_variables = false;
+        
+        % Optimization options:
+        %   max_iterations  
+        %       overall optimization maximum iterations
+        %   max_armijo_iterations 
+        %       Armijo (line search) maximum iteration (keep it small)
+        %   alpha_0
+        %       Initial step length (usually 1).
+        %   beta 
+        %       The step length multiplier (should be in the range (0, 1))
+        %   sigma
+        %       Used in Armijo condition. Values should be in the range (0, 1)
+        %       (check (3.3) in Hoheisel-2018)
+        %   tol_norm_obj_grad
+        %       Tolerance on the norm of the objective function gradient.
+        %       Perhaps this should depend on the number of design variables
+        optim_params = struct('max_iterations', 1e2, 'beta', 0.6, ...
+            'max_armijo_iterations', 15, 'sigma', 1e-4, 'stoppint_criterion',...
+            1e-4, 'alpha_0', 1, 'tol_norm_obj_grad', 1e-5);
     end
     
     properties (SetAccess = protected)
         % The graph to optimizer over. Should be set in the constructor. Once
         % set, cannot be changed.
         factor_graph = [];
+    end
+    
+    properties (Constant = true)
+        % Valid linear solvers
+        valid_linear_solvers = {'qr', 'cholesky'};
         
-        % A copy of the factor graph
+        % Valid optimization schemes
+        valid_optimization_schemes = { 'gn', 'lm'};
     end
 end
