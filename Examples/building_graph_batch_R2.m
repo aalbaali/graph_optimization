@@ -76,7 +76,7 @@ end
 % Add a prior factor
 factor_prior = FactorR2();
 factor_prior.setEndNode( 1, fg.node( "X_1"));
-factor_prior.setMeas( rand( 2, 1));
+factor_prior.setMeas( zeros( 2, 1) + 1e-3 * randn(2, 1));
 % factor_prior.setCov( eye( 2));
 fg.addFactorNode( factor_prior);
 % fg.addFactorNode( factor_prior, 'end_nodes', {fg.node("X_1")});
@@ -84,7 +84,7 @@ fg.addFactorNode( factor_prior);
 % Add odometry factors (process model)
 for kk = 1 : 2
     % Set up random measurements
-    factor = Factor_odom( 'meas', rand());
+    factor = Factor_odom( 'meas', 1 + 1e-3 * rand());
     % Set up end nodes
     factor.setEndNodes( fg.node( "X", kk), fg.node( "X", kk + 1));
     fg.addFactorNode( factor);

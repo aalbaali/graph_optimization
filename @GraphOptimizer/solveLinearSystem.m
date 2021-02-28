@@ -8,12 +8,17 @@ function solveLinearSystem( obj)
             % This is solved by using a QR decomposition:
             %   [~, R] = qr( [ J, -err], 0);
             
-            % Get the R matrix from the QR decomposition
-            [ ~, R] = qr( [ obj.m_werr_Jac, - obj.m_werr_val], 0);
+%             % Get the R matrix from the QR decomposition
+%             [ ~, R] = qr( [ obj.m_werr_Jac, -obj.m_werr_val], 0);
+%             
+%             % Store search direction
+%             % Solve system
+%             obj.m_search_direction = - R(:, 1 : end - 1) \ R(:, end);
+
+%             obj.m_search_direction = - ( obj.m_werr_Jac' * obj.m_werr_Jac) ...
+%                 \ ( obj.m_werr_Jac' * obj.m_werr_val);
             
-            % Store search direction
-            % Solve system
-            obj.m_search_direction = R(:, 1 : end - 1) \ R(:, end);
+            obj.m_search_direction = - obj.m_werr_Jac \ obj.m_werr_val;
         case 'cholesky'
             error("Not implemented yet");
         otherwise

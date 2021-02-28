@@ -22,16 +22,28 @@ function computeStepLength( obj)
         + obj.optim_params.sigma * step_length * wobj_Jac_km1 * search_dir_km1;
     
     % Starting step length
-    step_length = 1;
-    while ~armijoSatisfied( step_length)
+    step_length = 1;    
+    for lv1 = 1 : obj.optim_params.max_armijo_iterations
+        % Check stopping criterion
+         if armijoSatisfied( step_length)
+             break;
+         else
+             % Update step length
+             step_length = step_length * obj.optim_params.beta;
+         end
         % Make sure we're using the SAME factor graph from ( we need the same
         % starting points)
         obj.factor_graph = copy( fg_km1);
         % Increment updates
         obj.updateGraph( step_length * search_dir_km1);
         obj.computeWerrValueAndJacobian();
-        
-        % Update step length
-        step_length = step_length * obj.optim_params.beta;
     end
+    if ~armijoSatisfied( step_length)
+        warning( 'Armijo maximum iterations %i reached', ...
+            obj.optim_params.max_armijo_iterations);
+    end
+    
+    % Store step length
+    obj.m_step_length = step_length;
+    % Store 
 end

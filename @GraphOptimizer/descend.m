@@ -8,15 +8,12 @@ function descend( obj)
     obj.computeSearchDirection();
     
     % TODO: Check if it's indeed a descent direction
-    if obj.m_werr_val' * obj.m_werr_Jac * obj.m_search_direction > 0
+    if obj.m_werr_val' * obj.m_werr_Jac * obj.m_search_direction >= 0
         warning('Might not be a descent direction');
     end
     
     % Compute step length    
     obj.computeStepLength();    
-    
-    % Update graph
-    obj.updateGraph();    
     
     % TODO: Check if objective function decreased and update the array of
     % objective function values.

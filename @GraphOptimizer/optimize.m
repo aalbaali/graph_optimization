@@ -21,8 +21,18 @@ function obj = optimize( obj)
     
     %%%%%%%%%%warning('The following should be implemented in a loop');
     
-    % Get descent direction
-    obj.descend();
+    obj_val = [];
+    for kk = 1 : 1e3
+        % Get descent direction
+        obj.descend();
+        
+        if norm( obj.m_werr_val' * obj.m_werr_Jac) <= 1e-5
+            disp('Solution found');
+            break;
+        end
+        
+        obj_val = [ obj_val; obj.getObjectiveValue()];
+    end
     
     % Check if things are well (objective function decreased)
     

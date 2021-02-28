@@ -17,15 +17,15 @@ classdef FactorR2R2 < BaseFactor
             obj.endNodeTypes = [ "NodeR2", "NodeR2"];
             
             % Dimension of error function
-            obj.errDim = 2;
+            obj.errDim = size( obj.params.A, 1);
         
             % Dimension of the measurement (in this class, it could be 1 or 2. I
             % chose to make it 2 to try it out).
-            obj.measDim = 1;
+            obj.measDim = size( obj.params.B, 2);
         
             % Number of random variables. 1. noise on the interoceptive measurement
             % u, and 2 on process noise w_1 and w_2.
-            obj.numRVs = 2;
+            obj.numRVs = size( obj.params.L, 2);
             
             % Number of end nodes: it's a binary edge.
             obj.numEndNodes = 2;
@@ -54,7 +54,7 @@ classdef FactorR2R2 < BaseFactor
         function J_cell = getErrJacobiansNodes( obj)
             %GETERRJACOBIANSNODES gets the Jacobian of the (unweighted) error
             %function w.r.t. nodes. Note that the order matters!
-            J_cell = { eye( 2), -obj.params.A};
+            J_cell = { -obj.params.A, eye( 2)};
         end
         % A function that computes the error Jacobians w.r.t. the random
         % variables
