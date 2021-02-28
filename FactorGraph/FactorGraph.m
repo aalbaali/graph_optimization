@@ -539,6 +539,19 @@ classdef FactorGraph < handle & matlab.mixin.Copyable
             % must have an implementation of a copy function).
             cp.G.Nodes.Objects = cellfun( @(c) copy( c), ...
                 cp.G.Nodes.Objects, 'UniformOutput', false);
+            
+            % Go over each end_node in each object and copy the end_nodes (from
+            % the new copied factor graph)
+            %   Get the list of factor nodes        
+            factor_node_names = obj.getFactorNodeNames();
+            for lv1 = 1 : length( factor_node_names)
+                end_nodes_lv1 = cp.node( factor_node_names{ lv1}).end_nodes;
+                for lv2 = 1 : length( end_nodes_lv1)
+                    end_nodes_lv1{ lv2} = cp.node( end_nodes_lv1{ lv2}.name);
+                end
+                % Update the end_nodes in the new factor graph
+                cp.node( factor_node_names{ lv1}).setEndNodes( end_nodes_lv1{ :});
+            end
         end
     end
     methods
