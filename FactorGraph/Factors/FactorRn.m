@@ -51,22 +51,21 @@ classdef FactorRn < BaseFactor
             % Unweighted error
             err_val = meas - params.C * X;
         end
-    end
-    
-    methods (Static = false, Access = protected)
         
         % A function that computes the error Jacobians w.r.t. states/nodes
-        function J_cell = getErrJacobiansNodes( obj)
+        function err_jacs = errorJacobiansVars( ~, ~, params)
             %GETERRJACOBIANSNODES gets the Jacobian of the (unweighted) error
             %function w.r.t. nodes. Note that the order matters!
-            J_cell = { - obj.params.C};
+            err_jacs = { - params.C};
         end
         % A function that computes the error Jacobians w.r.t. the random
         % variables
-        function L = getErrJacobianRVs( obj)
-            L = obj.params.L;
+        function L = errorJacobiansRandomVars( ~, ~, params)
+            L = params.L;
         end
-        
+    end
+    
+    methods (Static = false, Access = protected)
         % Measurement validator
         function isvalid = isValidMeas( obj, meas_in)
             % Check if the dimensions make sense

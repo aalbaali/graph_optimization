@@ -506,20 +506,14 @@ classdef (Abstract) BaseFactor < handle & matlab.mixin.Copyable
     methods (Abstract = true, Static = true)
         % Get error function ( does not set the error_valu)
         err_val = errorFunction( end_nodes, meas, params)        
-    end
-    
-    methods (Abstract = true, Static = false, Access = protected)
-        % get error jacobians w.r.t. states/nodes
-        getErrJacobiansNodes( obj);
         
-        % get error jacobians w.r.t. random variables
-        getErrJacobianRVs( obj);
-        
-        % Measurement validator
-        bool = isValidMeas( obj, meas);
-        
-        % RV covariance validator
-        isvalid = isValidCov( obj, mat);
+        % get error jacobians w.r.t. states/nodes. These are usually the A ( or
+        % J) and C ( or H) matrices.
+        err_jacs = errorJacobiansVars( end_nodes, meas, params);
+                
+        % get error jacobians w.r.t. random variables. This is essentially the L
+        % or M matrices.
+        err_jacs = errorJacobiansRandomVars( end_nodes, meas, params);
     end
     
     methods (Access = protected)
@@ -529,7 +523,36 @@ classdef (Abstract) BaseFactor < handle & matlab.mixin.Copyable
             % object
             obj.err_val = obj.errorFunction( obj.end_nodes, obj.meas, obj.params);
         end
+        
+        % Compute error Jacobians w.r.t. nodes/variables and stores it in the
+        % object
+        function err_jacs = getErrJacobiansNodes( obj)
+            % GETERRJACOBIANSNODES() computes the error function Jacobians (does
+            % not store it in the object)
+            err_jacs = obj.errorJacobiansVars( obj.end_nodes, obj.meas, ...
+                obj.params);
+        end
+        
+        % get error jacobians w.r.t. random variables
+        function err_jacs = getErrJacobianRVs( obj)
+            % GETERRJACOBIANRVS() computes and returns the error function
+            % Jacobian w.r.t. the random variables. Does not store it in the
+            % object.
+            
+            err_jacs = obj.errorJacobiansRandomVars( obj.end_nodes, obj.meas,...
+                obj.params);
+        end
     end
+    
+    methods (Abstract = true, Static = false, Access = protected)
+        % Measurement validator
+        bool = isValidMeas( obj, meas);
+        
+        % RV covariance validator
+        isvalid = isValidCov( obj, mat);
+    end
+    
+ 
     methods (Abstract = false, Static = true)        
         function sqrt_mat = infm2sqrtInfm( inf_mat)
             % infm2sqrtInfm
