@@ -334,9 +334,6 @@ classdef (Abstract) BaseFactor < handle & matlab.mixin.Copyable
         
         function set.endNodeTypes( obj, endNodeTypes_in)
             % If it's already set, then give a warning
-            if ~ isempty( obj.endNodeTypes)
-%                 warning('EndNodeTypes already initialized');
-            end
             obj.endNodeTypes = endNodeTypes_in;            
         end
             
@@ -573,8 +570,6 @@ classdef (Abstract) BaseFactor < handle & matlab.mixin.Copyable
             end
             obj.numRVs = numRvs_in;
         end
-        
-        
         
         function obj = setEndNodeTypes( obj, endNodeTypes_in)
             % SETENDNODETYPES( endNodeTypes_in) sets endNodeTypes and updates
