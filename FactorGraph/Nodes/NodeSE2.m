@@ -15,6 +15,9 @@ classdef NodeSE2 < NodeLieGroups
             
             % Set default error definition to 'left-invariant'
             defaultErrorDefinition = 'left-invariant';
+            if ~exist('err_def', 'var')
+                err_def = defaultErrorDefinition;
+            end
             % First, create the class. Then take the input
             p = inputParser; 
             p.KeepUnmatched = true;
@@ -23,6 +26,8 @@ classdef NodeSE2 < NodeLieGroups
             parse( p, err_def);
     
             obj = obj@NodeLieGroups( 'SE2', 2, 3, p.Results.err_def, varargin{ :});
+            
+            obj.type = string( mfilename);
         end
         
         function isvalid = isValidValue( ~, value_in)

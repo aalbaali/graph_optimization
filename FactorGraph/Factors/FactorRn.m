@@ -13,7 +13,7 @@ classdef FactorRn < BaseFactor
             obj = obj@BaseFactor( varargin{:});            
             
             % Array of end node types
-            obj.setEndNodeTypes( [ "NodeRn"]);
+            obj.setEndNodeTypes( "NodeRn");
             
             obj.type = string( mfilename);
         end

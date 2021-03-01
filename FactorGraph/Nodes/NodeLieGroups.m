@@ -5,7 +5,7 @@
 %   Amro Al Baali
 %   28-Feb-2021
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-classdef NodeLieGroups < BaseNode
+classdef NodeLieGroups < BaseNode & LieGroups
     % This class forms as an abstract class for Lie group classes.
     
     methods
@@ -33,7 +33,7 @@ classdef NodeLieGroups < BaseNode
             
             % Store group name in the object.
             obj.group_name = p.Results.group_name;
-            obj.error_definition = err_def;
+            obj.setErrorDefinition( err_def);
         end
         
         function value = oplus( obj, value_in, xi)
@@ -116,14 +116,7 @@ classdef NodeLieGroups < BaseNode
             out = eval( strcat( lower( obj.group_name), 'alg'));
         end
     end
-    
-    methods (Static = true)
-        function isvalid = isValidErrorDefinition( err_def)
-            isvalid = any( validatestring( err_def, ...
-                NodeLieGroups.valid_error_definitions));
-        end
-    end
-    
+
     properties (SetAccess = protected)
         % The type will be specified from the constructor.
         type;
@@ -138,18 +131,5 @@ classdef NodeLieGroups < BaseNode
         
         % Group name (string/char)
         group_name;
-        
-        % Defined error definition. The default is left-invariant
-        error_definition = 'left-invariant';
-    end
-    
-    properties (Constant = true)
-        % Valid error definitions
-        valid_error_definitions = {'left', 'right', 'left-invariant', ...
-            'right-invariant'};
-        
-        % Valid Lie groups (this set should be updated whenever a new Lie group
-        % node is added)
-        valid_lie_groups = { 'SE2'};
     end
 end
