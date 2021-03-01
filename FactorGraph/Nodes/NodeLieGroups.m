@@ -19,19 +19,21 @@ classdef NodeLieGroups < BaseNode
                 NodeLieGroups.valid_lie_groups )));
             addRequired( p, 'dim', @(d) isscalar( d) && d > 0);
             addRequired( p, 'dof', @(d) isscalar( d) && d > 0);            
-            addRequired( p, 'err_def', @(ed) any( validatestring( ed, ...
-                NodeLieGroups.valid_error_definitions)));
+            addRequired( p, 'err_def', @NodeLieGroups.isValidErrorDefinition);
             
+            p.KeepUnmatched = true;
             parse( p, group_name, dim, dof, err_def);
             
             dim = p.Results.dim;
             dof = p.Results.dof;
+            
             
             % Call the superclass constructor
             obj = obj@BaseNode( varargin{ :}, 'dim', dim, 'dof', dof);
             
             % Store group name in the object.
             obj.group_name = p.Results.group_name;
+            obj.error_definition = err_def;
         end
         
         function value = oplus( obj, value_in, xi)
@@ -112,6 +114,13 @@ classdef NodeLieGroups < BaseNode
             % usage of the Lie algebra class functions. For example,
             % obj.algebra.expMap( [1;2;3]);
             out = eval( strcat( lower( obj.group_name), 'alg'));
+        end
+    end
+    
+    methods (Static = true)
+        function isvalid = isValidErrorDefinition( err_def)
+            isvalid = any( validatestring( err_def, ...
+                NodeLieGroups.valid_error_definitions));
         end
     end
     

@@ -60,11 +60,11 @@ classdef BaseNode < handle & matlab.mixin.Copyable
 
             % First input parser
             p1 = inputParser;
-            
+            p1.KeepUnmatched = true;
             % Second input parser (don't take the values because they may depend
             % on the dimension (another input parameter)
             p2 = inputParser;
-            
+            p2.KeepUnmatched = true;
             addParameter( p1, 'dim', [], isValidDim);
             addParameter( p1, 'dof', [], isValidDim);
             if length( varargin) > 1 && ~ischar( varargin{ 1})
