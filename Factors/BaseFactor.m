@@ -56,8 +56,7 @@ classdef (Abstract) BaseFactor < handle & matlab.mixin.Copyable
             isValidId     = @(id) obj.isValidId( id) ||  ( obj.isScalarNan( id));
             isValidEndNodes = @(endNodesCell) length( endNodesCell) ...
                 == obj.numEndNodes;
-            isValidMeas = @(meas) obj.isScalarNan( meas) ...
-                || obj.isValidMeas( meas);
+            isValidMeas = @(meas) true; % Ignoring setting measurements for now
             isValidCov = @(cov) obj.isScalarNan( cov) ...
                 || obj.isValidCov( cov);
             %   A valid name should only be a string

@@ -43,4 +43,7 @@ end
 %   Explanation
 %   ----------------------------------------------------------------------------
 %   Change log
+%       28-Feb-2021     :   Changed the superclass to FactorRn where FactorRn
+%           implements factors for elements in the general linear space R^n.
+%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

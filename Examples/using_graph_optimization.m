@@ -91,46 +91,41 @@ go.verbosity = 1;
 
 %% Factor graph using Rn
 rng('default');
+
+% Create lambda functions for the nodes
+PoseNode = @( varargin) NodeRn( 2, varargin{ :});
+% 	Parameters
+params_odom = struct('A', [0,1;-1,-1], 'B', [0;1], 'L', eye( 2));
+OdomFactor = @( varargin) FactorRnRn( 'params', params_pm, varargin{ :});
+PriorFactor = @( varargin) FactorRn( 'params', struct('C', eye( 2), 'L', ...
+    eye( 2)), varargin{ : });
 % Factor graph
 fg = FactorGraph();
 % Add nodes (3 nodes)
-fg.addVariableNode( NodeR2( [ 0; 0] + randn( 2, 1)));
-fg.addVariableNode( NodeR2( [ 0; 1] + randn( 2, 1)));
-fg.addVariableNode( NodeR2( [ 1; 0] + randn( 2, 1)));
+fg.addVariableNode( PoseNode( [ 0; 0] + randn( 2, 1)));
+fg.addVariableNode( PoseNode( [ 0; 1] + randn( 2, 1)));
+fg.addVariableNode( PoseNode( [ 1; 0] + randn( 2, 1)));
 
 % Prior Factor
-%   parameters
-params_prior = struct('C', eye( 2), 'L', diag( [1, 1e0]));
-%   Factor
-factor = FactorR2( 'params', params_prior);
-factor.setMeas( zeros( 2, 1));
-factor.setCov( 1 * eye( 2));
+factor = PriorFactor( 'meas', zeros( 2, 1), 'cov', eye( 2));
 factor.setEndNode( 1, fg.node("X_1"));
 %   Add to factor graph
 fg.addFactorNode( factor);
 
 % Add process model factors
-% 	Parameters
-params_pm = struct('A', [0,1;-1,-1], 'B', [0;1], 'L', eye( 2));
+
 %   Factors
-factor = FactorR2R2('params', params_pm);
-factor.setMeas( 1);
-factor.setCov( eye( 2));
+factor = OdomFactor( 'meas', 1, 'cov', eye( 2));
 factor.setEndNodes( fg.node("X_1"), fg.node("X_2"));
 %   Add to factor graph
 fg.addFactorNode( factor);
 
 % Add another process model factor
 %   Factors
-factor = FactorR2R2('params', params_pm);
-factor.setMeas( 1);
-factor.setCov( eye( 2));
+factor = OdomFactor( 'meas', 1, 'cov', eye( 2));
 factor.setEndNodes( fg.node("X_2"), fg.node("X_3"));
 %   Add to factor graph
 fg.addFactorNode( factor);
-
-% % Plot graph for visualization
-% plot( fg.G);
 
 % Set up the graph optimization
 go = GraphOptimizer( fg);

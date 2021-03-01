@@ -58,9 +58,9 @@ classdef NodeRn < BaseNode
         end
     end
     
-    properties (SetAccess = protected)
-        % Type of this node should match that class name
-        type;
+    properties (SetAccess = protected)        
+        % Set type (it can be changed from other subclasses)
+        type = string( mfilename);
         
         % Dimension of this node
         dim;
