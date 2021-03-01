@@ -10,11 +10,13 @@ classdef FactorRnRn < BaseFactor
     methods
         % Constructor
         function obj = FactorRnRn( varargin)
+            % FACTORRNRN( dim) sets the error dimension/dof of the factor.
             obj = obj@BaseFactor( varargin{:});
             
-            % TEMPORARY!!! I should implement an input parser.
             % Array of end node types
-            obj.setEndNodeTypes( [ "NodeR2", "NodeR2"]);
+            obj.setEndNodeTypes( [ "NodeRn", "NodeRn"]);       
+            
+            obj.type = string( mfilename);
         end
         
         function setParam( obj, field_in, param_in)
@@ -88,10 +90,11 @@ classdef FactorRnRn < BaseFactor
         end
     end
     
-    properties (Constant = true)
-        % Type of this edge
-        type = string( mfilename);
-    end
+%     properties (SetAccess = protected)
+%         % Type of this edge
+%         type;
+%     end
+    
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

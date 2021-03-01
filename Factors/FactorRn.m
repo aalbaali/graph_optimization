@@ -12,11 +12,10 @@ classdef FactorRn < BaseFactor
         function obj = FactorRn( varargin)
             obj = obj@BaseFactor( varargin{:});            
             
-            % Number of end nodes: it's a unary edge.
-            obj.numEndNodes = 1;
-
             % Array of end node types
-            obj.setEndNodeTypes( [ "NodeR2"]);
+            obj.setEndNodeTypes( [ "NodeRn"]);
+            
+            obj.type = string( mfilename);
         end
         
         function setParam( obj, field_in, param_in)
@@ -85,12 +84,6 @@ classdef FactorRn < BaseFactor
             % need to omit)
             isvalid = isvalid & all( eig( mat_in) >= 0);
         end
-    end
-    
-    
-    properties (Constant = true)
-        % Type of this edge
-        type = string( mfilename);
     end
 end
 

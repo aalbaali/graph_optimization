@@ -49,7 +49,7 @@ classdef (Abstract) BaseFactor < handle & matlab.mixin.Copyable
             default_end_nodes  = cell(1, obj.numEndNodes);
             default_meas       = nan();
             default_covariance = nan();
-            default_name       = nan();
+            default_name       = nan();            
             
             % No validator for the parameters
             isValidParams = @(params) true;
@@ -336,7 +336,7 @@ classdef (Abstract) BaseFactor < handle & matlab.mixin.Copyable
         function set.endNodeTypes( obj, endNodeTypes_in)
             % If it's already set, then give a warning
             if ~ isempty( obj.endNodeTypes)
-                warning('EndNodeTypes already initialized');
+%                 warning('EndNodeTypes already initialized');
             end
             obj.endNodeTypes = endNodeTypes_in;            
         end
@@ -605,16 +605,15 @@ classdef (Abstract) BaseFactor < handle & matlab.mixin.Copyable
         UUID;
     end
     
-    properties (Abstract = true, Constant = true)
-        %   The m_* prefix indicates that it's a 'member' variable
-        
-        % static const string: Factor type (e.g., "FactorSE2" or "FactorSE2R2"). I'll
-        % use the convention of setting type to the class name
+    properties (Abstract = false, SetAccess = protected)
+        % static const string: Node type (e.g., "NodeSE2"). I'll use the
+        % convention of setting type to the class name.
+        % In the inherited classes, simply use 
+        %   'type = mfilename;'
         type;
     end
     
-    properties (SetAccess = protected)
-        
+    properties (SetAccess = protected)        
         % Computed error value. This should only be set internally, cannot be
         % modified by user.
         err_val = nan;
