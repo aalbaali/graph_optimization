@@ -35,9 +35,7 @@ function updateGraph( obj, varargin)
             obj.m_info_variables( lv1).dof - 1);
          
         % Increment the node in the graph. 
-        %   The '+' operator is overloaded in the variable nodes. Furthermore,
-        %   since we're passing the nodes by reference, then the updated value
-        %   is stored in the variable node object.
-        obj.node( obj.m_info_variables( lv1).name) + increment( idx_rows);
+        obj.node( obj.m_info_variables( lv1).name).increment( ...
+            increment( idx_rows));
     end
 end

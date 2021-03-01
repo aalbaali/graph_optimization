@@ -36,4 +36,12 @@ classdef NodeSE2 < NodeLieGroups
             isvalid = SE2.isValidElement( value_in);
         end
     end
+    
+    methods (Static = true)        
+        function out = odot( b)
+            % ODOT( b) computes the matrix b\odot such that \xi^\wedge b ==
+            % b\odot\xi where \xi is a tangent vector (twist)
+            out = [so2alg.wedge(1) * b(1:2), b(3)*eye(2);zeros(1,3)];
+        end
+    end
 end

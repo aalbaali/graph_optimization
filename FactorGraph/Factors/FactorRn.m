@@ -37,22 +37,23 @@ classdef FactorRn < BaseFactor
         end
     end
     
-    methods (Static = false, Access = protected)
-        % Compute error
-        function computeError( obj)
-            %COMPUTEERROR Updates the weighted error value and returns the
-            %value.
+    methods (Static = true)
+        function err_val = errorFunction( end_nodes, meas, params)
+            % ERRORFUNCTION computes and returns the error value. It does NOT
+            % store it in the object. computeError on the other hand calls this
+            % method and stores the error_value in the object.
+            %            
+            %   This method does not validate the measurements or end_nodes
             
-            % Check if poses are valid
-            if ~obj.valid_end_nodes( 1)
-                error("Invalid end_nodes. May need initialization");
-            end
             % First pose
-            X = obj.end_nodes{1}.value;            
+            X = end_nodes{1}.value;            
             
             % Unweighted error
-            obj.err_val = obj.meas - obj.params.C * X;
+            err_val = meas - params.C * X;
         end
+    end
+    
+    methods (Static = false, Access = protected)
         
         % A function that computes the error Jacobians w.r.t. states/nodes
         function J_cell = getErrJacobiansNodes( obj)

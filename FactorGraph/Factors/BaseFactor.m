@@ -317,7 +317,7 @@ classdef (Abstract) BaseFactor < handle & matlab.mixin.Copyable
                 return;
             end
             % Check if node is valid
-            if ~( strcmp( node.type, obj.end_node_types( num)))
+            if ~isa( node, obj.end_node_types( num))
                 % Invalid type
                 error("Invalid node type. It should be of type %s", ...
                     obj.end_node_types( num));
@@ -503,11 +503,12 @@ classdef (Abstract) BaseFactor < handle & matlab.mixin.Copyable
         end
     end
     
+    methods (Abstract = true, Static = true)
+        % Get error function ( does not set the error_valu)
+        err_val = errorFunction( end_nodes, meas, params)        
+    end
     
     methods (Abstract = true, Static = false, Access = protected)
-        % computeError;
-        computeError( obj);
-        
         % get error jacobians w.r.t. states/nodes
         getErrJacobiansNodes( obj);
         
@@ -521,6 +522,14 @@ classdef (Abstract) BaseFactor < handle & matlab.mixin.Copyable
         isvalid = isValidCov( obj, mat);
     end
     
+    methods (Access = protected)
+        % computeError value and store it in error_value;
+        function obj = computeError( obj)
+            % COMPUTEERROR() computes the error value and stores it in the
+            % object
+            obj.err_val = obj.errorFunction( obj.end_nodes, obj.meas, obj.params);
+        end
+    end
     methods (Abstract = false, Static = true)        
         function sqrt_mat = infm2sqrtInfm( inf_mat)
             % infm2sqrtInfm
@@ -725,4 +734,9 @@ end
 %               errDim              ->          err_dim
 %               measDim             ->          meas_dim
 %               numRVs              ->          dim_rand_vars
+%
+%       01-Mar-2021     
+%           Added another abstract method: errorFunction and removed
+%           computeError from the list of abstract methods and placed it to
+%           protected methods.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

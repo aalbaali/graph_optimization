@@ -68,15 +68,33 @@ classdef FactorSE2 < BaseFactor & LieGroups
             obj.err_val = X - obj.meas;
         end
         
-        function getErrJacobianRVs( obj)
+        
+        function jacs = getErrJacobiansNodes( obj)
+            % Get the errors w.r.t. the variable nodes
+            switch obj.error_definition
+                case 'left'
+                    jacs = { - eye( 3)};
+                case 'right'
+                    jacs = { -SE2.adjoint( SE2.inverse( obj.value))};
+                case 'left-invariant'
+                    % Jacobian of Y\inv X \approx -\eye
+                    jacs = { - eye( 3)};
+                case 'right-invariant'
+                    jacs = { - eye( 3)};
+            end
         end
         
-        function getErrJacobiansNodes( obj)
+        function getErrJacobianRVs( obj)
         end
     end
     
-%     properties (SetAccess = protected)
-%         % Defined error definition. The default is left-invariant
-%         error_definition = 'left-invariant';
-%     end
+    methods (Static = true)        
+        function err_val = errorFunction( end_nodes, meas)
+            % Static error function
+            X = end_nodes{ 1};
+            % Compute measurement based on the error definition
+%             err_val = X - meas;
+            err_val = NodeSE2(X.error_definition, meas) - X.value;
+        end
+    end
 end

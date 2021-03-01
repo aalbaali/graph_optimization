@@ -220,8 +220,11 @@ classdef BaseNode < handle & matlab.mixin.Copyable
         
         % Overload the `+' operator using the `increment' function.
         function out = plus( obj, increment)
-            obj.increment( increment);
-            out = obj.value;
+            % obj + increment -> computes \oplus but does not store the value in
+            % the object
+            
+            % Do not store the value in the object
+            out = obj.oplus( obj.value, increment);            
         end
     end
     
