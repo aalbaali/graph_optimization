@@ -25,9 +25,7 @@ classdef NodeRn < BaseNode
             % Call superclass constructor
             obj = obj@BaseNode(varargin{ : }, 'dim', dim, 'dof', dim);
         end
-    end
     
-    methods (Static = false)
         % Static methods can be accessed without instantiating an object. These
         % can be used to access the node type and degrees of freedom (properties
         % that are not specific to any implementation)

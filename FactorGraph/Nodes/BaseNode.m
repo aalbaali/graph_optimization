@@ -95,10 +95,6 @@ classdef BaseNode < handle & matlab.mixin.Copyable
             if isfield( p2.Results, 'value')
                 obj.setValue( p2.Results.value);
             end
-            
-            if obj.dof > obj.dim
-                warning( 'dof > dim');
-            end
         end
         
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
