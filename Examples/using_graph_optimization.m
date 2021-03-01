@@ -10,6 +10,8 @@ building_graph_batch_R2;
 
 %% Addpaths to optimizer
 addpath( '..');
+addpath( genpath( '../FactorGraph'));
+addpath( '../Utils/');
 %% Check if the factor graph is ready for optimization
 % Call the static function. Set verbosity to 1.
 checkFactorGraph( fg, 1);
@@ -96,7 +98,7 @@ rng('default');
 PoseNode = @( varargin) NodeRn( 2, varargin{ :});
 % 	Parameters
 params_odom = struct('A', [0,1;-1,-1], 'B', [0;1], 'L', eye( 2));
-OdomFactor = @( varargin) FactorRnRn( 'params', params_pm, varargin{ :});
+OdomFactor = @( varargin) FactorRnRn( 'params', params_odom, varargin{ :});
 PriorFactor = @( varargin) FactorRn( 'params', struct('C', eye( 2), 'L', ...
     eye( 2)), varargin{ : });
 % Factor graph

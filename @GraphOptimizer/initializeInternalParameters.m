@@ -30,7 +30,7 @@ function initializeInternalParameters( obj)
     
     % Lambda function that returns the factor node object
     getFactNodeObject = @( fact_node) struct( 'name', fact_node.name, ...
-        'dim', fact_node.errDim);
+        'dim', fact_node.err_dim);
     % Cell of factor node names
     factor_node_names   = obj.factor_graph.getFactorNodeNames();
     % Number of factor nodes
@@ -72,3 +72,8 @@ function initializeInternalParameters( obj)
     % Build an empty sparse FULL Jacobian
     obj.m_werr_Jac = sparse( [], [], [], obj.m_num_rows_Jac, obj.m_num_cols_Jac);    
 end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Change log
+%       28-Feb-2021     :   Changed variable names
+%               errDim              ->          err_dim

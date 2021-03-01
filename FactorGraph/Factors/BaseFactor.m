@@ -39,14 +39,14 @@ classdef (Abstract) BaseFactor < handle & matlab.mixin.Copyable
             
             % Initialize the end nodes to empty cell array of the appropriate
             % size
-            obj.end_nodes = cell( 1, obj.numEndNodes);
+            obj.end_nodes = cell( 1, obj.num_end_nodes);
             % Set all nodes to 'uninitialized'
-            obj.valid_end_nodes = false( 1, obj.numEndNodes);
+            obj.valid_end_nodes = false( 1, obj.num_end_nodes);
             
             % Default values
             default_params     = struct();
             default_id         = nan();
-            default_end_nodes  = cell(1, obj.numEndNodes);
+            default_end_nodes  = cell(1, obj.num_end_nodes);
             default_meas       = nan();
             default_covariance = nan();
             default_name       = nan();            
@@ -55,7 +55,7 @@ classdef (Abstract) BaseFactor < handle & matlab.mixin.Copyable
             isValidParams = @(params) true;
             isValidId     = @(id) obj.isValidId( id) ||  ( obj.isScalarNan( id));
             isValidEndNodes = @(endNodesCell) length( endNodesCell) ...
-                == obj.numEndNodes;
+                == obj.num_end_nodes;
             isValidMeas = @(meas) true; % Ignoring setting measurements for now
             isValidCov = @(cov) obj.isScalarNan( cov) ...
                 || obj.isValidCov( cov);
@@ -128,7 +128,7 @@ classdef (Abstract) BaseFactor < handle & matlab.mixin.Copyable
                 return;
             else
                 % check if measurement is of right size
-                if length( meas_in) ~= obj.measDim
+                if length( meas_in) ~= obj.meas_dim
                     error("Measurement is of wrong size");
                 end
                 obj.meas = meas_in;
@@ -286,12 +286,12 @@ classdef (Abstract) BaseFactor < handle & matlab.mixin.Copyable
         function setEndNodes( obj, varargin)
             % This sets the end_nodes cell array. 
             %   Note that the end nodes should be passed by reference.
-            % varargin should be of length equal to numEndNodes. If a specific
+            % varargin should be of length equal to num_end_nodes. If a specific
             % node is to be set, then use `setEndNode'
-            if length( varargin) ~= obj.numEndNodes
+            if length( varargin) ~= obj.num_end_nodes
                 error("Number of input arguments is invalid");
             end
-            for lv1 = 1 : obj.numEndNodes                
+            for lv1 = 1 : obj.num_end_nodes                
                 obj.setEndNode( lv1, varargin{ lv1});                
             end
         end
@@ -307,7 +307,7 @@ classdef (Abstract) BaseFactor < handle & matlab.mixin.Copyable
             
             % Check validity of the number
             if ~( isscalar( num) && isreal( num) && num > 0 ...
-                && num <= obj.numEndNodes)
+                && num <= obj.num_end_nodes)
                 error("Invalid number");
             end
             
@@ -317,10 +317,10 @@ classdef (Abstract) BaseFactor < handle & matlab.mixin.Copyable
                 return;
             end
             % Check if node is valid
-            if ~( strcmp( node.type, obj.endNodeTypes( num)))
+            if ~( strcmp( node.type, obj.end_node_types( num)))
                 % Invalid type
                 error("Invalid node type. It should be of type %s", ...
-                    obj.endNodeTypes( num));
+                    obj.end_node_types( num));
             end
             obj.end_nodes{ num} = node;  
             
@@ -328,13 +328,13 @@ classdef (Abstract) BaseFactor < handle & matlab.mixin.Copyable
             obj.valid_end_nodes( num) = true;
         end        
         
-        function set.measDim( obj, measDim_in)
-            obj.measDim = measDim_in;
+        function set.meas_dim( obj, meas_dim_in)
+            obj.meas_dim = meas_dim_in;
         end
         
-        function set.endNodeTypes( obj, endNodeTypes_in)
+        function set.end_node_types( obj, end_node_types_in)
             % If it's already set, then give a warning
-            obj.endNodeTypes = endNodeTypes_in;            
+            obj.end_node_types = end_node_types_in;            
         end
             
         function setParam( obj, field_in, param_in)
@@ -544,38 +544,38 @@ classdef (Abstract) BaseFactor < handle & matlab.mixin.Copyable
     end
     
     methods (Access = protected)
-        function obj = setErrDim( obj, errDim_in)
-            % SETERRDIM( errDim_in) is a protected method that sets the expected
+        function obj = setErrDim( obj, err_dim_in)
+            % SETERRDIM( err_dim_in) is a protected method that sets the expected
             % error dimension
-            if ~isempty( obj.errDim)
+            if ~isempty( obj.err_dim)
                 warning('Error dimension is already set up');
             end
-            obj.errDim = errDim_in;
+            obj.err_dim = err_dim_in;
         end
         
-        function obj = setMeasDim( obj, measDim_in)
-            % SETERRDIM( errDim_in) is a protected method that sets the expected
+        function obj = setMeasDim( obj, meas_dim_in)
+            % SETERRDIM( err_dim_in) is a protected method that sets the expected
             % error dimension
-            if ~isempty( obj.measDim)
+            if ~isempty( obj.meas_dim)
                 warning('Measurement dimension is already set up');
             end
-            obj.measDim = measDim_in;
+            obj.meas_dim = meas_dim_in;
         end
         
         function obj = setNumRvs( obj, numRvs_in)
-            % SETERRDIM( errDim_in) is a protected method that sets the expected
+            % SETERRDIM( err_dim_in) is a protected method that sets the expected
             % error dimension
-            if ~isempty( obj.numRVs)
+            if ~isempty( obj.dim_rand_vars)
                 warning('Number of random variables is already set up');
             end
-            obj.numRVs = numRvs_in;
+            obj.dim_rand_vars = numRvs_in;
         end
         
-        function obj = setEndNodeTypes( obj, endNodeTypes_in)
-            % SETENDNODETYPES( endNodeTypes_in) sets endNodeTypes and updates
+        function obj = setEndNodeTypes( obj, end_node_types_in)
+            % SETENDNODETYPES( end_node_types_in) sets end_node_types and updates
             % the number of end nodes
-            obj.endNodeTypes = endNodeTypes_in;
-            obj.numEndNodes  = length( endNodeTypes_in);
+            obj.end_node_types = end_node_types_in;
+            obj.num_end_nodes  = length( end_node_types_in);
         end
         
         function cp = copyElement( obj)
@@ -675,23 +675,23 @@ classdef (Abstract) BaseFactor < handle & matlab.mixin.Copyable
         
         % static const int: Number of nodes attached to this edge (usually
         % it's either 1 or 2 for SLAM problems)
-        numEndNodes;
+        num_end_nodes;
         
         % static const string array of types of the end nodes. The order
         % matters! It should match the class name (e.g., "EdgeSE2R2" is
         % different from "EdgeR2SE2"). E.g., endNodes = {"NodeSE2", "NodeR2"};
         % The elements can be set using class(NodeR2) or more easily "NodeR2"
-        endNodeTypes;
+        end_node_types;
         
         % Dimension of the error function (or degrees of freedom)
-        errDim;
+        err_dim;
         
         % Dimension of the measurement
-        measDim;
+        meas_dim;
         
         % Number of random variables (including the measurement if it's counted
         % as a random variable)
-        numRVs;
+        dim_rand_vars;
     end
 end
 
@@ -720,4 +720,9 @@ end
 %   
 %           The reason for this change is that Factors should be treated as
 %           nodes, not as edges. 
+%               numEndNodes         ->          num_end_nodes
+%               endNodeTypes        ->          end_node_types
+%               errDim              ->          err_dim
+%               measDim             ->          meas_dim
+%               numRVs              ->          dim_rand_vars
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

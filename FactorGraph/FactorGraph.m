@@ -138,7 +138,7 @@ classdef FactorGraph < handle & matlab.mixin.Copyable
                 1 : length( end_nodes)));
             % EndNodeNames
             isValidEndNodeNames = @(end_node_names) length( end_node_names) ...
-                == factor_node.numEndNodes && all( isstring( end_node_names));
+                == factor_node.num_end_nodes && all( isstring( end_node_names));
             
             % Default vaue is whatever is in factor_node.end_nodes (even if it's
             % empty).
@@ -167,7 +167,7 @@ classdef FactorGraph < handle & matlab.mixin.Copyable
                 if ~isempty( end_node_names)
                     % Fill in the end_nodes using the end_node_names string
                     % array
-                    for lv1 = 1 : factor_node.numEndNodes
+                    for lv1 = 1 : factor_node.num_end_nodes
                         % Find end node
                         idx = obj.findnode( end_node_names( lv1));
                         end_node_lv1 = obj.G.Nodes.Objects{ idx};
@@ -178,7 +178,7 @@ classdef FactorGraph < handle & matlab.mixin.Copyable
                 % Check for every element of factor_node. Store `end_node_in'
                 % only if `factor_node.end_node{kk}' is nan or they're both the
                 % same (check the UUID).
-                for kk = 1 : factor_node.numEndNodes
+                for kk = 1 : factor_node.num_end_nodes
                     if isempty( factor_node.end_nodes) ...
                             || isempty( factor_node.end_nodes{ kk})
                         factor_node.setEndNode( kk, end_nodes_in{ kk});
@@ -191,10 +191,6 @@ classdef FactorGraph < handle & matlab.mixin.Copyable
                     % For each end_node, check if needs to be added to graph                    
                     if ~obj.findnodeUUID( end_nodes_in{ kk}.UUID)
                         obj.addVariableNode( end_nodes_in{ kk});
-                        
-%                         % warning('Adding node to graph');
-%                         obj.printf("Added variable node '%s' to graph\n", ...
-%                             end_nodes_in{ kk}.name);
                     end                    
                 end
             end
@@ -245,7 +241,7 @@ classdef FactorGraph < handle & matlab.mixin.Copyable
             % End nodes
             end_nodes = factor_node.end_nodes;
             % Go over each end_node and add an edge.
-            for lv1 = 1 : factor_node.numEndNodes
+            for lv1 = 1 : factor_node.num_end_nodes
                 % Create table
                 tab = table( { convertStringsToChars( factor_node.name), ...
                     convertStringsToChars( end_nodes{ lv1}.name )}, ...
@@ -676,4 +672,10 @@ end
 % TO DO
 %   - It's VERY confusing when it comes to NAME, ID, and TYPE. Reduce confusion.
 %
+% -----------------------------------------------------------------------------
+%
+% Change log
+%   28-Feb-2021 : Changed the following variables
+%               numEndNodes         ->          num_end_nodes
+%               endNodeTypes        ->          end_node_types
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -73,7 +73,7 @@ classdef FactorRnRn < BaseFactor
         % Measurement validator
         function isvalid = isValidMeas( obj, meas_in)
             % Check if the dimensions make sense
-            isvalid = all( size( meas_in) == [ obj.measDim, 1]);
+            isvalid = all( size( meas_in) == [ obj.meas_dim, 1]);
             isvalid = isvalid && all( ~isinf( meas_in));
             isvalid = isvalid && all( ~isnan( meas_in));
         end
@@ -106,4 +106,7 @@ end
 %   
 %           The reason for this change is that Factors should be treated as
 %           nodes, not as edges. 
+%
+%       28-Feb-2021 changed the following variable names
+%           measDim             ->      meas_dim
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
