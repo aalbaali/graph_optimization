@@ -53,7 +53,7 @@ classdef NodeLieGroups < BaseNode & LieGroups
             end
         end        
         
-        function value = between( obj, value_k, value_km1)
+        function value = between( obj, X, Y)
             % BETWEEN( value_1, value_2) performs X_k \ominus X_km1 depending on the
             % choice of the error definition
             
@@ -61,17 +61,17 @@ classdef NodeLieGroups < BaseNode & LieGroups
             p = inputParser;
             addRequired( p, 'value_k', @obj.isValidValue);
             addRequired( p, 'value_km1', @obj.isValidValue);
-            parse( p, value_k, value_km1);
+            parse( p, X, Y);
             
             switch obj.error_definition
                 case 'left'
-                    value = value_k * obj.group.inverse( value_km1);
+                    value = X * obj.group.inverse( Y);
                 case 'right'
-                    value = obj.group.inverse( value_km1) * value_k;
+                    value = obj.group.inverse( Y) * X;
                 case 'left-invariant'
-                    value = obj.group.inverse( value_k) * value_km1;
+                    value = obj.group.inverse( X) * Y;
                 case 'right-invariant'
-                    value = value_km1 * obj.group.inverse( value_k);
+                    value = Y * obj.group.inverse( X);
             end
         end
         

@@ -7,6 +7,7 @@
 classdef FactorSE2 < BaseFactor & LieGroups
     methods
         function obj = FactorSE2( varargin)
+            % TODO: input parser with optional error_definition
             obj = obj@BaseFactor( varargin{ :});
             
             % Set end node types
@@ -35,9 +36,48 @@ classdef FactorSE2 < BaseFactor & LieGroups
             setErrorDefinition@LieGroups( obj, err_def);
             
             cellfun(@( node) node.setErrorDefinition( err_def), obj.end_nodes);
+            
+            % Store the error definition in the parameters as well.
+            obj.params.error_definition = err_def;
         end
     end
     
+    methods (Static = true)
+        function err_val = errorFunction( end_nodes, meas, params)
+            % COMPUTEERROR() computes the error or residual value depending on
+            % the choice of the procee model
+            
+            % First pose
+            X = end_nodes{1};
+            
+            % Compute measurement based on the error definition
+            % err_val = X - meas;
+            err_val = NodeSE2( X.error_definition, meas) - X.value;
+        end
+        
+        
+        function err_jacs = errorJacobiansVars( end_nodes, meas, params)
+            
+            err_val = FactorSE2.errorFunction( end_nodes, meas, params);
+            
+            % Get the errors w.r.t. the variable nodes
+            switch params.error_definition
+                case 'left'
+                    err_jacs = { - SE2.computeJRightInv( err_val)};
+                case 'right'
+                    err_jacs = { - SE2.computeJLeftInv( err_val)};
+                case 'left-invariant'
+                    % Jacobian of Y\inv X \approx -\eye
+                    err_jacs = { - SE2.computeJRightInv( err_val)};
+                case 'right-invariant'
+                    err_jacs = { - SE2.computeJLeftInv( err_val)};
+            end
+        end
+        
+        function err_jac = errorJacobiansRandomVars( end_nodes, meas, params)
+            err_jac = eye(3);
+        end
+    end
     methods (Access = protected)
         
         function isvalid = isValidCov( ~, mat_in)
@@ -55,46 +95,6 @@ classdef FactorSE2 < BaseFactor & LieGroups
             % (this is expected to be like a prior or a full-state measurement).
             
             isvalid = SE2.isValidElement( meas_in);
-        end
-        
-        function computeError( obj)
-            % COMPUTEERROR() computes the error or residual value depending on
-            % the choice of the procee model
-            
-            % First pose
-            X = obj.end_nodes{1};
-            
-            % Compute measurement based on the error definition
-            obj.err_val = X - obj.meas;
-        end
-        
-        
-        function jacs = getErrJacobiansNodes( obj)
-            % Get the errors w.r.t. the variable nodes
-            switch obj.error_definition
-                case 'left'
-                    jacs = { - eye( 3)};
-                case 'right'
-                    jacs = { -SE2.adjoint( SE2.inverse( obj.value))};
-                case 'left-invariant'
-                    % Jacobian of Y\inv X \approx -\eye
-                    jacs = { - eye( 3)};
-                case 'right-invariant'
-                    jacs = { - eye( 3)};
-            end
-        end
-        
-        function getErrJacobianRVs( obj)
-        end
-    end
-    
-    methods (Static = true)        
-        function err_val = errorFunction( end_nodes, meas)
-            % Static error function
-            X = end_nodes{ 1};
-            % Compute measurement based on the error definition
-%             err_val = X - meas;
-            err_val = NodeSE2(X.error_definition, meas) - X.value;
         end
     end
 end

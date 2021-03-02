@@ -28,7 +28,7 @@ classdef (Abstract) LieGroups < handle
     end
     properties (SetAccess = protected)
         % Defined error definition. The default is left-invariant
-        error_definition = 'left-invariant';
+        error_definition;
     end
     
     properties (Constant = true)

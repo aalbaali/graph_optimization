@@ -56,11 +56,16 @@ classdef FactorRn < BaseFactor
         function err_jacs = errorJacobiansVars( ~, ~, params)
             %GETERRJACOBIANSNODES gets the Jacobian of the (unweighted) error
             %function w.r.t. nodes. Note that the order matters!
+            
+            % Note that in linear models, the Jacobians are state- and
+            % measurement-independent
             err_jacs = { - params.C};
         end
         % A function that computes the error Jacobians w.r.t. the random
         % variables
         function L = errorJacobiansRandomVars( ~, ~, params)
+            % Note that in linear models, the Jacobians are state- and
+            % measurement-independent
             L = params.L;
         end
     end
