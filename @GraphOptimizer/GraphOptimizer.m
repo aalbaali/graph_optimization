@@ -183,7 +183,7 @@ classdef GraphOptimizer < handle
             % Check that it's a logical argument
             p = inputParser;
             addRequired( p, 'verb_in', @(val_in) any( cellfun(@(c) ...
-                c == verb_in( val_in), obj.valid_verbosity)));
+                c == verb_in, obj.valid_verbosity)));
             parse( p, verb_in);
             obj.verbosity = p.Results.verb_in;
         end

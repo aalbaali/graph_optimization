@@ -58,11 +58,11 @@ classdef FactorGraph < handle & matlab.mixin.Copyable
             if isstring( p.Results.node.name) 
                 % Node has a name.
                 % Check if node already exists in the graph
-                if obj.findnodeUUID( p.Results.node.UUID)
-                    warning("The same node with name '%s' already exists in the graph", ...
-                        p.Results.node.name);
-                    return;
-                end
+%                 if obj.findnodeUUID( p.Results.node.UUID)
+%                     warning("The same node with name '%s' already exists in the graph", ...
+%                         p.Results.node.name);
+%                     return;
+%                 end
 %                 if ~strcmp( p.Results.node.name, ...
 %                     p.Results.name)
 %                     warning(['Convlict between "name" and',...
@@ -177,15 +177,16 @@ classdef FactorGraph < handle & matlab.mixin.Copyable
             else
                 % Check for every element of factor_node. Store `end_node_in'
                 % only if `factor_node.end_node{kk}' is nan or they're both the
-                % same (check the UUID).
+                % same (check the UUID). Actually do NOT check UUID. It takes a
+                % very long time for large graphs.
                 for kk = 1 : factor_node.num_end_nodes
                     if isempty( factor_node.end_nodes) ...
                             || isempty( factor_node.end_nodes{ kk})
                         factor_node.setEndNode( kk, end_nodes_in{ kk});
-                    elseif factor_node.end_nodes{ kk}.UUID ...
-                            ~= end_nodes_in{ kk}.UUID
-                        % Output error if both UUIDs don't match
-                        error("Conflict in end_nodes");
+%                     elseif factor_node.end_nodes{ kk}.UUID ...
+%                             ~= end_nodes_in{ kk}.UUID
+%                         % Output error if both UUIDs don't match
+%                         error("Conflict in end_nodes");
                     end
                     
                     % For each end_node, check if needs to be added to graph                    
@@ -507,7 +508,7 @@ classdef FactorGraph < handle & matlab.mixin.Copyable
             %   Generic name of the node (e.g., "X" or "Pose") without the
             %   unique identifier (e.g., _1).
             %
-            % @params[out] node_id : int8
+            % @params[out] node_id : 
             %   Id for this node with such node name
 
             idx_var_node_name = find( strcmp( [obj.variable_node_structs.name],...
@@ -520,12 +521,12 @@ classdef FactorGraph < handle & matlab.mixin.Copyable
 
                 % Create node type.
                 obj.variable_node_structs( length( obj.variable_node_structs) ...
-                    + 1) = struct( 'name', name, 'num', int8( 1));
+                    + 1) = struct( 'name', name, 'num', 1);
 
-                node_id = int8( 1);
+                node_id = 1;
             else
                 node_id = obj.variable_node_structs( ...
-                    idx_var_node_name).num + int8( 1);
+                    idx_var_node_name).num + 1;
                 obj.variable_node_structs( idx_var_node_name).num = ...
                     node_id;                
             end
@@ -540,7 +541,7 @@ classdef FactorGraph < handle & matlab.mixin.Copyable
             %   Generic name of the node (e.g., "F" or "Factor") without the
             %   unique identifier (e.g., _1).
             %
-            % @params[out] node_id : int8
+            % @params[out] node_id : 
             %   Id for this node with such node name
 
             idx_fact_node_name = find( strcmp( [obj.factor_node_structs.name],...
@@ -553,12 +554,12 @@ classdef FactorGraph < handle & matlab.mixin.Copyable
 
                 % Create node type.
                 obj.factor_node_structs( length( obj.factor_node_structs) ...
-                    + 1) = struct( 'name', name, 'num', int8( 1));
+                    + 1) = struct( 'name', name, 'num', 1);
 
-                node_id = int8( 1);
+                node_id = 1;
             else
                 node_id = obj.factor_node_structs( ...
-                    idx_fact_node_name).num + int8( 1);
+                    idx_fact_node_name).num + 1;
                 obj.factor_node_structs( idx_fact_node_name).num = ...
                     node_id;                
             end
@@ -620,7 +621,7 @@ classdef FactorGraph < handle & matlab.mixin.Copyable
             % Internal wanring message system. 
             % @params[in] message   :   sprintf object
             %   The message to print to the console
-            % @params[in] level     :   int8 >= 0
+            % @params[in] level     :   >= 0
             %   Level of severity. Here are the levels.
             %       0   :   Message
             %       1   :   Warning

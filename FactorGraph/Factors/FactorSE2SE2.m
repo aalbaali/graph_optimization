@@ -6,13 +6,19 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 classdef FactorSE2SE2 < BaseFactor & LieGroups
     methods
-        function obj = FactorSE2SE2( varargin)
+        function obj = FactorSE2SE2( error_definition, varargin)
             % TODO: input parser with optional error_definition
             obj = obj@BaseFactor( varargin{ :});
             
             % Set end node types
             obj.setEndNodeTypes( [ "NodeSE2", "NodeSE2"]);
             obj.type = string( mfilename);
+
+            obj.setErrorDefinition( error_definition);
+
+            obj.setErrDim( 3);
+            obj.setMeasDim( 3);
+            obj.setNumRvs( 3);
         end
         
         function obj = setEndNode( obj, num, node)

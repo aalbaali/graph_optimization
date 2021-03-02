@@ -13,6 +13,10 @@ classdef FactorSE2 < BaseFactor & LieGroups
             % Set end node types
             obj.setEndNodeTypes( "NodeSE2");
             obj.type = string( mfilename);
+
+            obj.setErrDim( 3);
+            obj.setMeasDim( 3);
+            obj.setNumRvs( 3);
         end
         
         function obj = setEndNode( obj, num, node)
