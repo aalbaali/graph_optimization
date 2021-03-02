@@ -4,7 +4,7 @@
 %   Amro Al Baali
 %   1-Mar-2021
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-clear all;
+% clear all;
 close all;
 
 % Number of poses
@@ -21,6 +21,10 @@ u_arr = [ 1e-1 * ones( 1, K - 1); 1 * ones( 1, K - 1); zeros( 1, K -1)];
 Q     = 1e-1 * eye( 3);
 
 rng('default');
+
+%% Set up the factor graph
+disp('Building factor graph');
+tic();
 % Error definition
 error_definition = 'left-invariant';
 % Create lambda functions for the nodes
@@ -53,8 +57,10 @@ for kk = 1 : K - 1
     pause(1e-2);
 end
 clear odomFactor;
-
-keyboard();
+toc();
+fprintf('Done\n\n')
+%% Optimization
+% keyboard();
 tic();
 % Set up the graph optimization
 go = GraphOptimizer( fg);
@@ -66,7 +72,7 @@ go.reorder_element_variables = false;
 go.verbosity = 1;
 
 % Optimize
-[a, b] = go.optimize();
+go.optimize();
 toc();
 %% Compare with dead-reckoning (true) solution
 X_odom( :, :, 1) = X0;
