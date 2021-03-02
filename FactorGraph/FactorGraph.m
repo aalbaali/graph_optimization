@@ -190,7 +190,11 @@ classdef FactorGraph < handle & matlab.mixin.Copyable
                     end
                     
                     % For each end_node, check if needs to be added to graph                    
-                    if ~obj.findnodeUUID( end_nodes_in{ kk}.UUID)
+%                     if ~obj.findnodeUUID( end_nodes_in{ kk}.UUID)
+                    
+                    % If the node has a name, then it's in the graph. Otherwise,
+                    % add it.
+                    if isempty( end_nodes_in{ kk}.name)
                         obj.addVariableNode( end_nodes_in{ kk});
                     end                    
                 end

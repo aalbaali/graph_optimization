@@ -183,6 +183,14 @@ classdef BaseNode < handle & matlab.mixin.Copyable
                 error("UUID already defined to %s", obj.UUID);
             end
         end
+
+        function setParam( obj, field_in, param_in)
+            % SETPARAM( field_in, param_in) sets a single field in the params
+            % struct.
+            
+            obj.params.( field_in) = param_in;
+        end
+
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         %   Getters
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -320,6 +328,9 @@ classdef BaseNode < handle & matlab.mixin.Copyable
         
         % Node name. This could be defined by the user (e.g., "PoseX_1")
         name;
+
+        % Parameters that can be accessed by the user or the optimizer.
+        params;
     end   
     
     properties (Abstract = false, Access = protected)

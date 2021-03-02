@@ -26,7 +26,7 @@ function computeWerrValueAndJacobian( obj, varargin)
     
     for lv1 = 1 : obj.m_num_factor_nodes        
         % Get the factor node
-        factor_node = obj.node( obj.m_info_factors( lv1).name);
+        factor_node = obj.m_info_factors( lv1).node;
         
         % Get the Jacobian row indices.
         idx_rows = obj.m_idx_Jac_rows( lv1) + ( 0 : ...
@@ -38,11 +38,12 @@ function computeWerrValueAndJacobian( obj, varargin)
         end
         
         % Get the end node names
-        end_node_names = factor_node.getEndNodeNames();
+        end_nodes = factor_node.end_nodes;
         
-        for lv2 = 1 : length( end_node_names)
+        for lv2 = 1 : length( end_nodes)
             % Find the variable node from the variable node information array 
-            idx = find( strcmp( [obj.m_info_variables.name], end_node_names{ lv2}));
+            idx = end_nodes{ lv2}.params.GraphOptimization.idx_info_variables;
+            
             % Get column indices
             idx_cols = obj.m_idx_Jac_cols( idx) ...
                 + ( 0 : obj.m_info_variables( idx).dof - 1);

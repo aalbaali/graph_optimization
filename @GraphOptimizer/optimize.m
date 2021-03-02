@@ -16,13 +16,15 @@ function [ success, optim_stats] = optimize( obj)
         error( "Factor graph not initialized");
     end
     
+    obj.printf( 'Checking graph validity\n');
     % Check if graph is valid. Pass the verbosity
     checkFactorGraph( obj.factor_graph, obj.verbosity);
     
     % Initialize internal parameters and Jacobian (does not fill in the Jacobian
     % values).
+    obj.printf( 'Initializing parameters and matrices\n');
     obj.initializeInternalParameters();
-    
+
     % Reorder variables (block-wise Jacobian columns)
     if obj.reorder_variables        
         obj.reorderVariables();
@@ -36,6 +38,7 @@ function [ success, optim_stats] = optimize( obj)
     % iteration
     obj_val_km1 = inf;    
     
+    obj.printf('Starting main optimization loop\n');
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Main optimization loop
     for lv1 = 1 : obj.optim_params.max_iterations

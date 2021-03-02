@@ -12,7 +12,7 @@ function initializeInternalParameters( obj)
     
     % Lambda function that returns the variable node object
     getVarNodeObject = @( var_node) struct( 'name', var_node.name, ...
-        'dof', var_node.dof);
+        'dof', var_node.dof, 'node', var_node);
     
     % Cell of variable node names
     variable_node_names = obj.factor_graph.getVariableNodeNames();    
@@ -21,8 +21,16 @@ function initializeInternalParameters( obj)
     obj.m_num_variable_nodes = length( variable_node_names);        
     
     % Struct array of variable nodes
-    obj.m_info_variables = ...
-        cellfun( @( name) getVarNodeObject( obj.node( name)), variable_node_names);
+%     obj.m_info_variables = ...
+%         cellfun( @( name) getVarNodeObject( obj.node( name)), variable_node_names);
+
+    for lv1 = 1 : obj.m_num_variable_nodes
+        obj.m_info_variables( lv1) = getVarNodeObject( obj.node( ...
+            variable_node_names{ lv1}));
+        % Store the index number in the node object.
+        obj.m_info_variables( lv1).node.setParam( 'GraphOptimization', ...
+            struct( 'idx_info_variables', lv1));
+    end
     % Array of Jacobian column index for each variable. The variables are in
     % the same order as in m_info_variables
     obj.updateJacobianColIndices();
@@ -30,7 +38,7 @@ function initializeInternalParameters( obj)
     
     % Lambda function that returns the factor node object
     getFactNodeObject = @( fact_node) struct( 'name', fact_node.name, ...
-        'dim', fact_node.err_dim);
+        'dim', fact_node.err_dim, 'node', fact_node);
     % Cell of factor node names
     factor_node_names   = obj.factor_graph.getFactorNodeNames();
     % Number of factor nodes
@@ -70,7 +78,7 @@ function initializeInternalParameters( obj)
     obj.m_num_cols_Jac = sum( [ obj.m_info_variables.dof]);
     
     % Build an empty sparse FULL Jacobian
-    obj.m_werr_Jac = sparse( [], [], [], obj.m_num_rows_Jac, obj.m_num_cols_Jac);    
+    obj.m_werr_Jac = sparse( [], [], [], obj.m_num_rows_Jac, obj.m_num_cols_Jac);  
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

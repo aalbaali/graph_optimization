@@ -204,13 +204,13 @@ classdef GraphOptimizer < handle
         % includes 
         %   1. the name (name) of the factor node in the graph, and        
         %   2. the dimension (dim) of the error function of the factor.
-        m_info_factors = struct( 'name', {}, 'dim', []);
+        m_info_factors = struct( 'name', {}, 'dim', [], 'node', []);
         
         % Struct array of variables. This each element, contains a struct that
         % includes 
         %   1. the name (name) of the variable node in the graph, and        
         %   2. the degree of freedom (dof) of the variable of the factor.
-        m_info_variables = struct( 'name', {}, 'dof', []);
+        m_info_variables = struct( 'name', {}, 'dof', [], 'node', []);
         
         % Array of Jacobian column index for each variable. The variables are in
         % the same order as in m_info_variables
