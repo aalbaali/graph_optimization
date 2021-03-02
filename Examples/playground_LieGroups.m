@@ -53,4 +53,27 @@ Jac_fd = derivative_finite( errFun, zeros( 3, 1), 1e-6);
 % Compare with compute Jacobian
 err_jacs = factor_meas_gps.werr_Jacobians{1};
 
-all( abs( Jac_fd - err_jacs) < 1e-3, 'all')
+all( abs( Jac_fd - err_jacs) < 1e-3, 'all');
+
+%% Process model
+node_X2 = NodeSE2( node_X.error_definition, SE2.synthesize(pi/4, [7;8]));
+
+% Process model factor
+params = struct('dt', 1);
+process_model_factor = FactorSE2SE2( 'params', params);
+process_model_factor.setErrorDefinition( node_X.error_definition);
+process_model_factor.setMeas( [1; 2; 3]);
+process_model_factor.setCov( eye( 3));
+process_model_factor.setEndNodes( node_X, node_X2);
+
+% errFun = @( xi) process_model_factor.errorFunction( {NodeSE2( node_X.error_definition, ...
+%     node_X + xi), node_X2}, process_model_factor.meas, process_model_factor.params);
+errFun = @( xi) process_model_factor.errorFunction( {node_X, NodeSE2( ...
+    node_X2.error_definition, node_X2 + xi)}, process_model_factor.meas, process_model_factor.params);
+
+% Compute errFun Jacobian
+Jac_fd = derivative_finite( errFun, zeros( 3, 1), 1e-6);
+% Compare with compute Jacobian
+err_jacs = process_model_factor.werr_Jacobians{ 2};
+
+all( abs( Jac_fd - err_jacs) < 1e-3, 'all');
