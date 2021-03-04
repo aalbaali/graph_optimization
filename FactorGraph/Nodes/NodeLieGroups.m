@@ -57,11 +57,11 @@ classdef NodeLieGroups < BaseNode & LieGroups
             % BETWEEN( value_1, value_2) performs X_k \ominus X_km1 depending on the
             % choice of the error definition
             
-            % Parse input
-            p = inputParser;
-            addRequired( p, 'value_k', @obj.isValidValue);
-            addRequired( p, 'value_km1', @obj.isValidValue);
-            parse( p, X, Y);
+%             % Parse input
+%             p = inputParser;
+%             addRequired( p, 'value_k', @obj.isValidValue);
+%             addRequired( p, 'value_km1', @obj.isValidValue);
+%             parse( p, X, Y);
             
             switch obj.error_definition
                 case 'left'

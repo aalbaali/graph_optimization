@@ -43,6 +43,9 @@ function [ success, optim_stats] = optimize( obj)
     % Main optimization loop
     for lv1 = 1 : obj.optim_params.max_iterations
         
+        if rem( lv1, obj.optim_params.disp_iteration) == 0
+            obj.printf('Starting iteration \t%i\n', lv1);
+        end
         % Compute search direction
         obj.computeSearchDirection();
 
@@ -53,6 +56,8 @@ function [ success, optim_stats] = optimize( obj)
 
         % Compute step length    
         obj.computeStepLength();    
+        % Temporary: use constant step length
+%         obj.m_step_length = 1e-2;
         
         obj_val_k = obj.getObjectiveValue();
         if store_optim_stats
