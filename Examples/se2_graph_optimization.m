@@ -12,7 +12,7 @@ if true
     run ../paths.m;
 
     % Number of poses
-    K = 500;
+    K = 1e3;
 
     dt = 1;
 
@@ -74,6 +74,8 @@ end
 %% Optimization
 % keyboard();
 tic();
+% Set factor graph to release mode
+fg.setToReleaseMode();
 % Set up the graph optimization
 go = GraphOptimizer( fg);
 

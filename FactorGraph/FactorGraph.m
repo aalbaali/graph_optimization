@@ -500,6 +500,24 @@ classdef FactorGraph < handle & matlab.mixin.Copyable
                 node_values{ kk}), 1 : length( variableNodeNames), ...
                 'UniformOutput', false);
         end
+        
+        function obj = setToDebugMode( obj)
+            %   SETTODEBUG() sets all nodes in the graph to debug mode.
+            % Debug mode
+            obj.debug_mode = true;
+            for lv1 = 1 : size( obj.G.Nodes, 1)
+                obj.G.Nodes.Objects{ lv1}.setToDebugMode();
+            end
+        end
+        
+        function obj = setToReleaseMode( obj)
+            %   SETTORELEASEMODE() sets to release mode.
+            % Debug mode
+            obj.debug_mode = false;
+            for lv1 = 1 : size( obj.G.Nodes, 1)
+                obj.G.Nodes.Objects{ lv1}.setToReleaseMode();
+            end
+        end
     end
     
     methods (Access = protected)
@@ -657,6 +675,8 @@ classdef FactorGraph < handle & matlab.mixin.Copyable
         variable_node_structs = struct( 'name', {}, 'num', []);
         % Same struct array but for factor nodes
         factor_node_structs = struct( 'name', {}, 'num', []);
+        
+        debug_mode = true;
     end
     
     properties (Constant = true)
