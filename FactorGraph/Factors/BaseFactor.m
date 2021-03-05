@@ -501,6 +501,15 @@ classdef (Abstract) BaseFactor < handle & matlab.mixin.Copyable
                 obj.m_rvs_2ndMoments_up_to_date = true;                
             end
         end
+                
+        function obj = setToDebugMode( obj)
+            %   SETTODEBUGMODE() sets the node to debug mode.
+            obj.debug_mode = true;
+        end
+        function obj = setToReleaseMode( obj)
+            %   SETTORELEASEMODE() sets the node to debug mode.
+            obj.debug_mode = false;
+        end
     end
     
     methods (Abstract = true, Static = true)
@@ -724,6 +733,12 @@ classdef (Abstract) BaseFactor < handle & matlab.mixin.Copyable
         % Number of random variables (including the measurement if it's counted
         % as a random variable)
         dim_rand_vars;
+    end
+    
+    properties 
+        % Debug mode is slower but more reliable. Set it to false when
+        % optimizing
+        debug_mode = true;
     end
 end
 

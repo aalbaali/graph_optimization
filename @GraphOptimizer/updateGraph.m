@@ -35,7 +35,6 @@ function updateGraph( obj, varargin)
             obj.m_info_variables( lv1).dof - 1);
          
         % Increment the node in the graph. 
-        obj.node( obj.m_info_variables( lv1).name).increment( ...
-            increment( idx_rows));
+        obj.m_info_variables( lv1).node.increment( increment( idx_rows));
     end
 end

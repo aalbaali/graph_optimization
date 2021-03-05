@@ -25,7 +25,7 @@ classdef NodeSE2 < NodeLieGroups
                 @NodeLieGroups.isValidErrorDefinition);
             parse( p, err_def);
     
-            obj = obj@NodeLieGroups( 'SE2', 2, 3, p.Results.err_def, varargin{ :});
+            obj = obj@NodeLieGroups( 2, 3, p.Results.err_def, varargin{ :});
             
             obj.type = string( mfilename);
         end
@@ -43,5 +43,13 @@ classdef NodeSE2 < NodeLieGroups
             % b\odot\xi where \xi is a tangent vector (twist)
             out = [so2alg.wedge(1) * b(1:2), b(3)*eye(2);zeros(1,3)];
         end
+    end
+    
+    properties (Constant = true)
+        % Static Lie group class (e.g., SE2)
+        lie_group_class = SE2;
+        
+        % Static Lie algebra class (e.g., se2alg)
+        lie_algebra_class = se2alg;
     end
 end

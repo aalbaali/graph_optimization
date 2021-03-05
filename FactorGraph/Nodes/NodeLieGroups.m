@@ -9,20 +9,18 @@ classdef NodeLieGroups < BaseNode & LieGroups
     % This class forms as an abstract class for Lie group classes.
     
     methods
-        function obj = NodeLieGroups( group_name, dim, dof, err_def, varargin)
-            % NODELIEGROUPS( group_name, dim, dof, err_def) stores the dim, dof,
+        function obj = NodeLieGroups( dim, dof, err_def, varargin)
+            % NODELIEGROUPS( dim, dof, err_def) stores the dim, dof,
             % and the Matrix Lie group name, and the error definition. E.g.,
             % NodeLieGroups( 2, 3, 'SE2', 'left-invariant').
             
-            p = inputParser;
-            addRequired( p, 'group_name', @(gn) any( validatestring( gn, ...
-                NodeLieGroups.valid_lie_groups )));
+            p = inputParser;            
             addRequired( p, 'dim', @(d) isscalar( d) && d > 0);
             addRequired( p, 'dof', @(d) isscalar( d) && d > 0);            
             addRequired( p, 'err_def', @NodeLieGroups.isValidErrorDefinition);
             
             p.KeepUnmatched = true;
-            parse( p, group_name, dim, dof, err_def);
+            parse( p, dim, dof, err_def);
             
             dim = p.Results.dim;
             dof = p.Results.dof;
@@ -31,8 +29,7 @@ classdef NodeLieGroups < BaseNode & LieGroups
             % Call the superclass constructor
             obj = obj@BaseNode( varargin{ :}, 'dim', dim, 'dof', dof);
             
-            % Store group name in the object.
-            obj.group_name = p.Results.group_name;
+            % Store group name in the object.            
             obj.setErrorDefinition( err_def);
         end
         
@@ -57,11 +54,13 @@ classdef NodeLieGroups < BaseNode & LieGroups
             % BETWEEN( value_1, value_2) performs X_k \ominus X_km1 depending on the
             % choice of the error definition
             
-            % Parse input
-            p = inputParser;
-            addRequired( p, 'value_k', @obj.isValidValue);
-            addRequired( p, 'value_km1', @obj.isValidValue);
-            parse( p, X, Y);
+            if obj.debug_mode
+                % Parse input
+                p = inputParser;
+                addRequired( p, 'value_k', @obj.isValidValue);
+                addRequired( p, 'value_km1', @obj.isValidValue);
+                parse( p, X, Y);
+            end
             
             switch obj.error_definition
                 case 'left'
@@ -106,14 +105,14 @@ classdef NodeLieGroups < BaseNode & LieGroups
             % GROUP() returns the static class name of the group. This allows
             % the usage of the Lie group functions. For example:
             %   obj.group.decompose( obj.value);
-            out = eval( upper( obj.group_name));
+            out = obj.lie_group_class;
         end
         
         function out = algebra( obj)
             % ALGEBRA() returns the Lie algebra of the group. This allows the
             % usage of the Lie algebra class functions. For example,
             % obj.algebra.expMap( [1;2;3]);
-            out = eval( strcat( lower( obj.group_name), 'alg'));
+            out = obj.lie_algebra_class;
         end
     end
 
@@ -128,8 +127,13 @@ classdef NodeLieGroups < BaseNode & LieGroups
         % Degree of freedom of the node. This is basically the dimension of the
         % increment. E.g., for SE2, dof is 3.
         dof;
+    end
+    
+    properties (Abstract = true, Constant = true)
+        % Static Lie group class (e.g., SE2)
+        lie_group_class;
         
-        % Group name (string/char)
-        group_name;
+        % Static Lie algebra class (e.g., se2alg)
+        lie_algebra_class;
     end
 end

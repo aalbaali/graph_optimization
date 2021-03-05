@@ -20,7 +20,7 @@ params = struct('A', A, 'B', B, 'L', L);
 % For this system, define a new constructor
 Edge = @(varargin) EdgeR2R2('params', params, varargin{:});
 
-% % This lambda function would REQUIRE the specification of an ID
+% This lambda function would REQUIRE the specification of an ID
 % Edge = @(id, varargin) EdgeR2R2('params', params, 'id', id, varargin{:});
 
 % Specify the measurement

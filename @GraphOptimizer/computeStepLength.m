@@ -5,8 +5,16 @@ function computeStepLength( obj)
     
     % Get a copy of the variable values in the factor graph (this will be used
     % to "reset" the factor graph variables
-    var_values_km1 = obj.factor_graph.getVariableNodeValues();
-    
+%     var_values_km1 = obj.factor_graph.getVariableNodeValues(); % This is an expensive step
+     
+     var_values_km1 = arrayfun( @( lv1) obj.m_info_variables( ...
+         lv1).node.value, 1 : obj.m_num_variable_nodes, ...
+         'UniformOutput', false);
+    % Lambda function that sets the variable node values to the ones above
+    resetVariableVals = @() arrayfun( @( lv1) obj.m_info_variables( ...
+         lv1).node.setValue( var_values_km1{ lv1}), 1 : ...
+         obj.m_num_variable_nodes, 'UniformOutput', false);
+     
     % Keep a copy of the error function, Jacobian, and objective function
     werr_val_km1 = obj.m_werr_val;
     werr_Jac_km1 = obj.m_werr_Jac;    
@@ -33,12 +41,16 @@ function computeStepLength( obj)
              % Update step length
              step_length = step_length * obj.optim_params.beta;
          end
-        % Make sure we're using the SAME node values graph from ( we need the same
-        % starting points)
-        obj.factor_graph.setVariableNodeValues( var_values_km1);
+        % Make sure we're using the SAME node values from graph ( we need the
+        % same starting points)
+%         obj.factor_graph.setVariableNodeValues( var_values_km1); % This is an expensive step
+        resetVariableVals();
+        
         % Increment updates
         obj.updateGraph( step_length * search_dir_km1);
-        obj.computeWerrValueAndJacobian();
+        
+        % Compute (update) weighted error
+        obj.computeWerr();
     end
     
     % Output a warning if maximum iteration reached

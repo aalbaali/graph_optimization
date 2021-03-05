@@ -114,10 +114,12 @@ classdef BaseNode < handle & matlab.mixin.Copyable
                 return;
             end
             
-            p = inputParser;
-            addRequired( p, 'value_in', @obj.isValidValue);
-            parse( p, value_in);
-            value_in = p.Results.value_in;
+            if obj.debug_mode
+                p = inputParser;
+                addRequired( p, 'value_in', @obj.isValidValue);
+                parse( p, value_in);
+                value_in = p.Results.value_in;
+            end
             
             % Set the internal value
             obj.value = value_in;
@@ -139,7 +141,7 @@ classdef BaseNode < handle & matlab.mixin.Copyable
             % Check if the id is valid
             if obj.isValidId( id_in)
                 % Store as an integer
-                obj.id = int8( id_in);
+                obj.id = id_in;
             else
                 error("Invalid id input");
             end
@@ -152,11 +154,12 @@ classdef BaseNode < handle & matlab.mixin.Copyable
             % I should check for positive semi-definiteness but I'm not aware of
             % a cheap way to do it. Checking for positive definiteness might be
             % too restrictive.
-            isValidCov = @( cov) issymmetric( cov) && length( cov) == obj.dof;            
-            
-            p = inputParser;            
-            addRequired( p, 'cov', isValidCov);
-            parse( p, cov);
+            if obj.debug_mode
+                isValidCov = @( cov) issymmetric( cov) && length( cov) == obj.dof;
+                p = inputParser;            
+                addRequired( p, 'cov', isValidCov);
+                parse( p, cov);
+            end
             
             obj.cov = cov;
         end
@@ -165,13 +168,15 @@ classdef BaseNode < handle & matlab.mixin.Copyable
             %SETNAME Sets the name of the node
             % @params[in] name_in: string.
             
-            if ~isstring( name_in) && isnan( name_in)
-                obj.name = nan;
-            elseif ischar( name_in) || isstring( name_in)
-                % Ensure that it's stored as string
-                obj.name = string( name_in);
-            else
-                error("Invalid name type");
+            if obj.debug_mode
+                if ~isstring( name_in) && isnan( name_in)
+                    obj.name = nan;
+                elseif ischar( name_in) || isstring( name_in)
+                    % Ensure that it's stored as string
+                    obj.name = string( name_in);
+                else
+                    error("Invalid name type");
+                end
             end
         end
         
@@ -217,7 +222,7 @@ classdef BaseNode < handle & matlab.mixin.Copyable
             end
             
             % Check validity of the increment            
-            if ~obj.isValidIncrement( increment)                
+            if obj.debug_mode && ~obj.isValidIncrement( increment)                
                 error("Invalid increment");
             end
             
@@ -233,6 +238,15 @@ classdef BaseNode < handle & matlab.mixin.Copyable
             
             % Do not store the value in the object
             out = obj.oplus( obj.value, increment);            
+        end
+        
+        function obj = setToDebugMode( obj)
+            %   SETTODEBUGMODE() sets the node to debug mode.
+            obj.debug_mode = true;
+        end
+        function obj = setToReleaseMode( obj)
+            %   SETTORELEASEMODE() sets the node to debug mode.
+            obj.debug_mode = false;
         end
     end
     
@@ -336,6 +350,13 @@ classdef BaseNode < handle & matlab.mixin.Copyable
     properties (Abstract = false, Access = protected)
         % Tracks whether a value is initialized or not
         m_value_initialized = false;
+    end
+    
+    properties 
+        % Debug mode is slower but safer. Set it to false just before the
+        % optimization to speed it up.
+        debug_mode = true;
+        
     end
 end
 

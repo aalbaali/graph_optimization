@@ -69,6 +69,8 @@ classdef GraphOptimizer < handle
         function node_obj = node( obj, node_name)
             %NODE( node_name) returns the node object in the graph. It simply
             %calls the NODE method from the factor_graph object.
+            
+            % warning('Very slow method. Try to avoid');
             node_obj = obj.factor_graph.node( node_name);
         end
         
@@ -267,9 +269,12 @@ classdef GraphOptimizer < handle
         %   tol_norm_obj_grad
         %       Tolerance on the norm of the objective function gradient.
         %       Perhaps this should depend on the number of design variables
+        %   disp_iteration N
+        %       Displays the optimization iteration every N steps.
         optim_params = struct('max_iterations', 1e2, 'beta', 0.6, ...
             'max_armijo_iterations', 15, 'sigma', 1e-4, 'stoppint_criterion',...
-            1e-4, 'alpha_0', 1, 'tol_norm_obj_grad', 1e-5);
+            1e-4, 'alpha_0', 1, 'tol_norm_obj_grad', 1e-5, ...
+            'disp_iteration', 5);
     end
     
     properties
